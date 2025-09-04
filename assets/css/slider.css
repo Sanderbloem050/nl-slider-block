@@ -1,0 +1,163 @@
+:root{
+  --ru-text:#111;
+  --ru-pad:clamp(18px,3vw,36px);
+  --rucs-nav-w: 44px;   /* breedte-zone navknoppen */
+  --rucs-pad-x: 16px;   /* extra marge voor content links */
+}
+
+/* ====== SLIDER SHELL ====== */
+.rucs-slider{ position:relative; overflow:hidden; }
+.rucs-track{
+  display:flex; gap:0;
+  overflow-x:auto; scroll-snap-type:x mandatory; scroll-behavior:smooth;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none; -ms-overflow-style:none;
+}
+.rucs-track::-webkit-scrollbar{ display:none; }
+
+/* ====== SLIDE BASIS ====== */
+.rucs-slide{
+  flex:0 0 100%;
+  min-height: var(--rucs-height, min(65vh, 720px));
+  position:relative;
+  background-size:cover;          /* beeldvullend */
+  background-position:center;     /* netjes gecropt */
+  background-repeat:no-repeat;
+  scroll-snap-align:center;
+  overflow:hidden;                 /* nodig voor inklappende balk */
+}
+@media (max-width: 782px){
+  .rucs-slide{ min-height: var(--rucs-height-mobile, var(--rucs-height, 60vh)); }
+}
+
+/* ====== TYPE A ====== */
+/* Content-pane links (desktop) */
+.rucs-slide.type_a .panel-left{
+  position:absolute; inset:0 auto 0 0;
+  width:var(--ru-left, 600px);
+  background:var(--ru-accent, #ffeb00);
+  color:var(--ru-text);
+  padding:var(--ru-pad);
+  display:flex; flex-direction:column; justify-content:center;
+  z-index:2;  /* boven accentbalk */
+}
+
+/* Teksttypografie */
+.rucs-slide .title{ font-size:clamp(28px,5vw,56px); line-height:1.05; margin:0 0 12px; font-weight:800; }
+.rucs-slide .text{  font-size:clamp(16px,2vw,18px); line-height:1.6; }
+
+/* Rechter ACCENTBALK voor Type A:
+   - Desktop: UIT
+   - Mobiel: wordt hieronder ingeschakeld en door .bar-open zichtbaar gemaakt
+*/
+.rucs-slide.type_a::after{
+  content:"";
+  display:none;                  /* geen balk op desktop */
+}
+
+/* Extra padding links zodat pijlen niet in de tekst vallen */
+.rucs-slide.type_a .panel-left{
+  padding-left: calc(var(--rucs-nav-w) + var(--rucs-pad-x));
+  padding-right: 16px;
+}
+@media (max-width: 782px){
+  .rucs-slide.type_a .panel-left{
+    padding-left: calc((var(--rucs-nav-w) * .7) + 12px);
+    padding-right: 12px;
+  }
+}
+
+/* ====== TYPE A – MOBIEL: pane + balk samen inklapbaar ====== */
+@media (max-width: 782px){
+  /* Accentbalk alleen op mobiel: standaard onzichtbaar (geen 1px randje),
+     bij .bar-open zichtbaar */
+  .rucs-slide.type_a::after{
+    display:block;
+    position:absolute; top:0; right:0; bottom:0;
+    width: var(--ru-bar-w-mobile, 10px);
+    background: var(--ru-accent, #ffeb00);
+    opacity: 0;
+    transition: opacity .25s ease;
+    z-index:1;
+  }
+  .rucs-slide.type_a.bar-open::after{
+    opacity: 1;
+  }
+
+  /* Contentpane: standaard volledig uit beeld, open = in beeld */
+  .rucs-slide.type_a .panel-left{
+    inset:auto 0 0 0;              /* onderaan */
+    width:100%;
+    background: var(--ru-accent, #ffeb00);
+    color: var(--ru-text);
+    transform: translateY(100%);   /* verborgen */
+    opacity: 0;
+    pointer-events: none;
+    transition: transform .28s ease, opacity .28s ease;
+  }
+  .rucs-slide.type_a.bar-open .panel-left{
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Toggle-icoon om open/dicht te klappen */
+  .rucs-slide.type_a .accent-toggle{
+    display:inline-flex;
+    position:absolute;
+    top:8px; right:8px;
+    width:34px; height:34px;
+    align-items:center; justify-content:center;
+    border-radius:999px; border:0;
+    background:rgba(0,0,0,.45); color:#fff;
+    line-height:1; z-index:4;
+  }
+  .rucs-slide.type_a .accent-toggle svg{
+    width:18px; height:18px; pointer-events:none;
+  }
+}
+
+/* ====== TYPE B ====== */
+.rucs-slide.type_b .caption{
+  position:absolute; left:0; right:0; bottom:0; height: var(--ru-cap-h, auto);
+  background:var(--ru-accent, #ffeb00); color:var(--ru-text);
+  padding:var(--ru-pad); font-weight:700; font-size:clamp(18px,3.2vw,36px);
+  display:flex; align-items:center;
+}
+
+/* Popup bij Type B */
+.rucs-slide.type_b .popup-toggle{
+  position:absolute; left:14px; bottom:calc(14px + var(--ru-cap-h, 0px));
+  z-index:3; width:36px; aspect-ratio:1/1; border-radius:999px; border:0; cursor:pointer;
+  background:rgba(0,0,0,.45); color:#fff; font-weight:700; display:flex; align-items:center; justify-content:center;
+}
+.rucs-slide.type_b .popup-toggle:focus{ outline:2px solid #fff; outline-offset:2px; }
+.rucs-slide.type_b .popup{
+  position:absolute; left:var(--ru-pad); bottom:calc(var(--ru-pad) + var(--ru-cap-h, 0px)); max-width:min(640px, 92%);
+  background:var(--ru-accent, #ffeb00); color:var(--ru-text);
+  border-radius:12px; box-shadow:0 12px 28px rgba(0,0,0,.22);
+  padding:var(--ru-pad); z-index:3; transform:translateY(12px); opacity:0; pointer-events:none;
+  transition:transform .45s ease, opacity .45s ease;
+}
+.rucs-slide.type_b .popup-inner{ position:relative; }
+.rucs-slide.type_b .popup-title{ margin:0 0 .35em 0; font-size:clamp(22px,3.4vw,36px); line-height:1.15; font-weight:800; }
+.rucs-slide.type_b .popup-text{ font-size:clamp(15px,2vw,18px); line-height:1.6; }
+.rucs-slide.type_b .popup-close{ position:absolute; top:-8px; right:-8px; width:32px; aspect-ratio:1/1; border-radius:999px; border:0; cursor:pointer; background:rgba(0,0,0,.35); color:#fff; font-size:18px; line-height:1; }
+.rucs-slide.type_b.popup-open .popup{ transform:translateY(0); opacity:1; pointer-events:auto; }
+
+/* ====== NAV & DOTS ====== */
+.rucs-slider .nav{
+  position:absolute; top:50%; transform:translateY(-50%);
+  background:rgba(0,0,0,.35); color:#fff; border:0;
+  width:var(--rucs-nav-w); height:42px; border-radius:999px; cursor:pointer;
+  display:grid; place-items:center; z-index:3;
+}
+.rucs-slider .nav.prev{ left:10px; } .rucs-slider .nav.next{ right:10px; }
+.rucs-slider .nav:focus{ outline:2px solid #fff; }
+
+.rucs-dots{ position:absolute; left:50%; bottom:12px; transform:translateX(-50%); display:flex; gap:6px; z-index:3; }
+.rucs-dots .dot{ width:10px; aspect-ratio:1/1; box-sizing:border-box; border-radius:50%; border:2px solid rgba(255,255,255,.9); background:rgba(255,255,255,.35); cursor:pointer; }
+.rucs-dots .dot.is-active{ background:#fff; }
+@media (max-width:780px){
+  .rucs-dots{ bottom:8px; } .rucs-dots .dot{ width:8px; }
+}

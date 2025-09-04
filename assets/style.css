@@ -1,0 +1,119 @@
+:root{
+  --ru-text:#111;
+  --ru-pad:clamp(18px,3vw,36px);
+}
+
+/* container */
+.rucs-slider{ position:relative; overflow:hidden; }
+.rucs-track{
+  display:flex; gap:0;
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  scroll-behavior:smooth;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;          /* Firefox */
+  -ms-overflow-style:none;       /* IE/Edge */
+}
+.rucs-track::-webkit-scrollbar{ display:none; } /* WebKit */
+
+/* slide */
+.rucs-slide{
+  flex:0 0 100%;
+  height: var(--rucs-height, min(65vh, 720px));
+  position:relative;
+  background-size:cover;
+  background-position:center;
+  scroll-snap-align:center;
+}
+
+/* Type A: linker kolom */
+.rucs-slide.type_a .panel-left{
+  position:absolute; inset:0 auto 0 0;
+  width:var(--ru-left, 600px);             /* px of % */
+  background:var(--ru-accent, #ffeb00);    /* per-slide kleur */
+  color:var(--ru-text);
+  padding:var(--ru-pad);
+  display:flex; flex-direction:column; justify-content:center;
+}
+.rucs-slide .title{
+  font-size:clamp(28px,5vw,56px);
+  line-height:1.05; margin:0 0 12px; font-weight:800;
+}
+.rucs-slide .text{ font-size:clamp(16px,2vw,18px); line-height:1.6; }
+
+/* Type B: caption onder (hoogte optioneel) */
+.rucs-slide.type_b .caption{
+  position:absolute; left:0; right:0; bottom:0;
+  background:var(--ru-accent, #ffeb00);
+  color:var(--ru-text);
+  padding:var(--ru-pad);
+  font-weight:700; font-size:clamp(18px,3.2vw,36px);
+  height: var(--ru-cap-h, auto);
+  display:flex; align-items:center;
+}
+
+/* nav-knoppen */
+.rucs-slider .nav{
+  position:absolute; top:50%; transform:translateY(-50%);
+  background:rgba(0,0,0,.35); color:#fff; border:0;
+  width:42px; height:42px; border-radius:999px; cursor:pointer;
+}
+.rucs-slider .nav.prev{ left:10px; }
+.rucs-slider .nav.next{ right:10px; }
+.rucs-slider .nav:focus{ outline:2px solid #fff; }
+
+/* dots */
+.rucs-dots{
+  position:absolute; left:50%; bottom:12px; transform:translateX(-50%);
+  display:flex; gap:6px; z-index:3;
+}
+.rucs-dots .dot{
+  width:10px; aspect-ratio:1/1; box-sizing:border-box;
+  border-radius:50%;
+  border:2px solid rgba(255,255,255,.9);
+  background: rgba(255,255,255,.35);
+  cursor:pointer;
+}
+.rucs-dots .dot.is-active{ background:#fff; }
+
+/* Type B popup */
+.rucs-slide.type_b .popup-toggle{
+  position:absolute; left:14px; bottom:calc(14px + var(--ru-cap-h, 0px));
+  z-index:3;
+  width:36px; aspect-ratio:1/1; border-radius:999px; border:0;
+  cursor:pointer;
+  background:rgba(0,0,0,.45); color:#fff; font-weight:700;
+  display:flex; align-items:center; justify-content:center;
+}
+.rucs-slide.type_b .popup-toggle:focus{ outline:2px solid #fff; outline-offset:2px; }
+
+.rucs-slide.type_b .popup{
+  position:absolute; left:var(--ru-pad); right:auto;
+  bottom:calc(var(--ru-pad) + var(--ru-cap-h, 0px));
+  max-width:min(640px, 92%);
+  background:var(--ru-accent, #ffeb00);
+  color:var(--ru-text);
+  border-radius:12px;
+  box-shadow:0 12px 28px rgba(0,0,0,.22);
+  padding:var(--ru-pad); z-index:3;
+  transform:translateY(12px); opacity:0; pointer-events:none;
+  transition:transform .45s ease, opacity .45s ease;
+}
+.rucs-slide.type_b .popup-inner{ position:relative; }
+.rucs-slide.type_b .popup-title{
+  margin:0 0 .35em 0; font-size:clamp(22px,3.4vw,36px); line-height:1.15; font-weight:800;
+}
+.rucs-slide.type_b .popup-text{ font-size:clamp(15px,2vw,18px); line-height:1.6; }
+.rucs-slide.type_b .popup-close{
+  position:absolute; top:-8px; right:-8px;
+  width:32px; aspect-ratio:1/1; border-radius:999px; border:0; cursor:pointer;
+  background:rgba(0,0,0,.35); color:#fff; font-size:18px; line-height:1;
+}
+.rucs-slide.type_b.popup-open .popup{ transform:translateY(0); opacity:1; pointer-events:auto; }
+
+@media (max-width:780px){
+  .rucs-slide{ height: var(--rucs-height-mobile, var(--rucs-height, 60vh)); }
+  .rucs-slide.type_a .panel-left{ width:100%; height:auto; inset:auto 0 0 0; }
+  .rucs-dots{ bottom:8px; }
+  .rucs-dots .dot{ width:8px; }
+}
