@@ -29,11 +29,46 @@ add_shortcode('nlsb_slider', function($atts){
   ]);
   if (!$slides) return '';
 
+  // ===== Shared info (slide 1) =====
+  $first_id      = $slides[0]->ID;
+  $shared_title  = get_the_title($first_id);
+  $shared_body   = apply_filters('the_content', get_post_field('post_content', $first_id));
+  $shared_btnTxt = get_post_meta($first_id,'_nlsb_btnText', true) ?: '';
+  $shared_btnUrl = get_post_meta($first_id,'_nlsb_btnUrl',  true) ?: '';
+  $shared_accent = get_post_meta($first_id,'_nlsb_accent', true) ?: '#ffeb00';
+
   wp_enqueue_style('nlsb-slider');
   wp_enqueue_script('nlsb-slider');
 
   ob_start(); ?>
-  <div class="rucs-slider" style="--rucs-height:<?php echo esc_attr($height); ?>; --rucs-height-mobile:<?php echo esc_attr($mheight); ?>;">
+  <div class="rucs-slider"
+       style="--rucs-height:<?php echo esc_attr($height); ?>;
+              --rucs-height-mobile:<?php echo esc_attr($mheight); ?>;
+              --ru-accent: <?php echo esc_attr($shared_accent); ?>;">
+
+    <!-- Globale info toggle + modal (gebruikt content van slide 1) -->
+    <button class="rucs-info-toggle"
+            aria-expanded="false"
+            aria-controls="rucs-info-modal"
+            title="<?php esc_attr_e('Toon informatie','nlsb'); ?>">+</button>
+
+    <div id="rucs-info-modal"
+         class="rucs-info-modal"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="rucs-info-title">
+      <button class="rucs-info-close" aria-label="<?php esc_attr_e('Sluiten','nlsb'); ?>">×</button>
+      <?php if ($shared_title): ?>
+        <h2 id="rucs-info-title"><?php echo esc_html($shared_title); ?></h2>
+      <?php endif; ?>
+      <?php if ($shared_body): ?>
+        <div class="rucs-info-body"><?php echo $shared_body; ?></div>
+      <?php endif; ?>
+      <?php if ($shared_btnTxt && $shared_btnUrl): ?>
+        <p><a class="button" href="<?php echo esc_url($shared_btnUrl); ?>"><?php echo esc_html($shared_btnTxt); ?></a></p>
+      <?php endif; ?>
+    </div>
+
     <div class="rucs-track" tabindex="0" aria-roledescription="carousel">
       <?php foreach($slides as $s):
         $id     = $s->ID;
@@ -64,24 +99,16 @@ add_shortcode('nlsb_slider', function($atts){
             </div>
           <?php else: ?>
             <div class="caption"><?php echo esc_html($caption ?: $title); ?></div>
-            <button class="popup-toggle" aria-label="Toon info" aria-expanded="false">i</button>
-            <div class="popup" role="dialog" aria-modal="false" aria-label="Slide informatie">
-              <div class="popup-inner">
-                <button class="popup-close" aria-label="Sluiten">&times;</button>
-                <?php if ($title): ?><h3 class="popup-title"><?php echo esc_html($title); ?></h3><?php endif; ?>
-                <?php if ($body):  ?><div class="popup-text"><?php echo $body; ?></div><?php endif; ?>
-                <?php if ($btnTxt && $btnUrl): ?><p><a class="button" href="<?php echo esc_url($btnUrl); ?>"><?php echo esc_html($btnTxt); ?></a></p><?php endif; ?>
-              </div>
-            </div>
+            <!-- Per-slide popup verwijderd; globale info-modal wordt gebruikt -->
           <?php endif; ?>
         </section>
       <?php endforeach; ?>
     </div>
 
-    <button class="nav prev" aria-label="Vorige slide">&#10094;</button>
-    <button class="nav next" aria-label="Volgende slide">&#10095;</button>
+    <button class="nav prev" aria-label="<?php esc_attr_e('Vorige slide','nlsb'); ?>">&#10094;</button>
+    <button class="nav next" aria-label="<?php esc_attr_e('Volgende slide','nlsb'); ?>">&#10095;</button>
 
-    <div class="rucs-dots" role="tablist" aria-label="Slider paginatie">
+    <div class="rucs-dots" role="tablist" aria-label="<?php esc_attr_e('Slider paginatie','nlsb'); ?>">
       <?php foreach($slides as $i => $_): ?>
         <button class="dot<?php echo $i===0?' is-active':''; ?>" role="tab" aria-selected="<?php echo $i===0?'true':'false'; ?>" data-index="<?php echo $i; ?>"></button>
       <?php endforeach; ?>

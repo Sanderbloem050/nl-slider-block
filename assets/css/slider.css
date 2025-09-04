@@ -46,13 +46,12 @@
 .rucs-slide .title{ font-size:clamp(28px,5vw,56px); line-height:1.05; margin:0 0 12px; font-weight:800; }
 .rucs-slide .text{  font-size:clamp(16px,2vw,18px); line-height:1.6; }
 
-/* Rechter ACCENTBALK voor Type A:
+/* Rechter ACCENTBALK (Type A)
    - Desktop: UIT
-   - Mobiel: wordt hieronder ingeschakeld en door .bar-open zichtbaar gemaakt
-*/
+   - Mobiel: hieronder aan bij .bar-open */
 .rucs-slide.type_a::after{
   content:"";
-  display:none;                  /* geen balk op desktop */
+  display:none; /* geen balk op desktop */
 }
 
 /* Extra padding links zodat pijlen niet in de tekst vallen */
@@ -69,8 +68,7 @@
 
 /* ====== TYPE A – MOBIEL: pane + balk samen inklapbaar ====== */
 @media (max-width: 782px){
-  /* Accentbalk alleen op mobiel: standaard onzichtbaar (geen 1px randje),
-     bij .bar-open zichtbaar */
+  /* Accentbalk alleen op mobiel; standaard onzichtbaar, open = zichtbaar */
   .rucs-slide.type_a::after{
     display:block;
     position:absolute; top:0; right:0; bottom:0;
@@ -80,17 +78,15 @@
     transition: opacity .25s ease;
     z-index:1;
   }
-  .rucs-slide.type_a.bar-open::after{
-    opacity: 1;
-  }
+  .rucs-slide.type_a.bar-open::after{ opacity: 1; }
 
-  /* Contentpane: standaard volledig uit beeld, open = in beeld */
+  /* Contentpane: dicht = uit beeld; open = in beeld */
   .rucs-slide.type_a .panel-left{
-    inset:auto 0 0 0;              /* onderaan */
+    inset:auto 0 0 0;
     width:100%;
     background: var(--ru-accent, #ffeb00);
     color: var(--ru-text);
-    transform: translateY(100%);   /* verborgen */
+    transform: translateY(100%);
     opacity: 0;
     pointer-events: none;
     transition: transform .28s ease, opacity .28s ease;
@@ -101,7 +97,7 @@
     pointer-events: auto;
   }
 
-  /* Toggle-icoon om open/dicht te klappen */
+  /* Toggle-icoon (mobiel) */
   .rucs-slide.type_a .accent-toggle{
     display:inline-flex;
     position:absolute;
@@ -112,12 +108,11 @@
     background:rgba(0,0,0,.45); color:#fff;
     line-height:1; z-index:4;
   }
-  .rucs-slide.type_a .accent-toggle svg{
-    width:18px; height:18px; pointer-events:none;
-  }
+  .rucs-slide.type_a .accent-toggle svg{ width:18px; height:18px; pointer-events:none; }
 }
 
 /* ====== TYPE B ====== */
+/* Caption-balk onderin (blijft) */
 .rucs-slide.type_b .caption{
   position:absolute; left:0; right:0; bottom:0; height: var(--ru-cap-h, auto);
   background:var(--ru-accent, #ffeb00); color:var(--ru-text);
@@ -125,25 +120,102 @@
   display:flex; align-items:center;
 }
 
-/* Popup bij Type B */
+/* Toggle-knop: centreer bovenin en toon '+' / '×' */
 .rucs-slide.type_b .popup-toggle{
-  position:absolute; left:14px; bottom:calc(14px + var(--ru-cap-h, 0px));
-  z-index:3; width:36px; aspect-ratio:1/1; border-radius:999px; border:0; cursor:pointer;
-  background:rgba(0,0,0,.45); color:#fff; font-weight:700; display:flex; align-items:center; justify-content:center;
+  position:absolute;
+  left:50%; top:8px;
+  transform:translateX(-50%);
+  z-index:4;
+  width:44px; height:44px;
+  border-radius:999px;
+  border:0; cursor:pointer;
+  background:#fff; color:#111;
+  box-shadow:0 6px 18px rgba(0,0,0,.18);
+  font-size:0; line-height:1; /* we gebruiken ::before */
 }
-.rucs-slide.type_b .popup-toggle:focus{ outline:2px solid #fff; outline-offset:2px; }
+.rucs-slide.type_b .popup-toggle::before{
+  content:"+";
+  font-size:24px;
+  font-weight:700;
+}
+.rucs-slide.type_b.popup-open .popup-toggle::before{
+  content:"×";
+}
+
+/* ====== MODAL POPUP (Type B) – gecentreerd met animatie ====== */
 .rucs-slide.type_b .popup{
-  position:absolute; left:var(--ru-pad); bottom:calc(var(--ru-pad) + var(--ru-cap-h, 0px)); max-width:min(640px, 92%);
-  background:var(--ru-accent, #ffeb00); color:var(--ru-text);
-  border-radius:12px; box-shadow:0 12px 28px rgba(0,0,0,.22);
-  padding:var(--ru-pad); z-index:3; transform:translateY(12px); opacity:0; pointer-events:none;
-  transition:transform .45s ease, opacity .45s ease;
+  position: fixed;               /* los van slide lay-out */
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(.96);
+  max-width: 960px;
+  width: min(92%, 960px);
+  max-height: 85vh;
+  overflow-y: auto;
+
+  background: #fff;
+  color: #111;
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0,0,0,.45);
+
+  padding: clamp(20px, 3vw, 40px);
+  z-index: 9999;
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .28s ease, transform .28s ease;
 }
+.rucs-slide.type_b.popup-open .popup{
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: auto;
+}
+
+/* Donkere overlay achter modal */
+.rucs-slide.type_b.popup-open::before{
+  content:"";
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  backdrop-filter: saturate(120%) blur(2px);
+  z-index: 9998;
+}
+
+/* Close-button in modal */
+.rucs-slide.type_b .popup-close{
+  position:absolute;
+  top:12px; right:12px;
+  width:36px; height:36px;
+  border:0; border-radius:50%;
+  cursor:pointer;
+  background: rgba(0,0,0,.08);
+  color:#000; font-size:20px;
+  display:flex; align-items:center; justify-content:center;
+  transition: background .2s ease;
+}
+.rucs-slide.type_b .popup-close:hover{ background: rgba(0,0,0,.16); }
+
+/* Typografie in modal */
 .rucs-slide.type_b .popup-inner{ position:relative; }
-.rucs-slide.type_b .popup-title{ margin:0 0 .35em 0; font-size:clamp(22px,3.4vw,36px); line-height:1.15; font-weight:800; }
-.rucs-slide.type_b .popup-text{ font-size:clamp(15px,2vw,18px); line-height:1.6; }
-.rucs-slide.type_b .popup-close{ position:absolute; top:-8px; right:-8px; width:32px; aspect-ratio:1/1; border-radius:999px; border:0; cursor:pointer; background:rgba(0,0,0,.35); color:#fff; font-size:18px; line-height:1; }
-.rucs-slide.type_b.popup-open .popup{ transform:translateY(0); opacity:1; pointer-events:auto; }
+.rucs-slide.type_b .popup-title{
+  margin:0 0 .5em 0;
+  font-size: clamp(24px, 3.5vw, 36px);
+  font-weight: 800;
+  line-height:1.15;
+}
+.rucs-slide.type_b .popup-text{
+  font-size: clamp(16px, 2vw, 18px);
+  line-height: 1.6;
+  margin-bottom: 1em;
+}
+
+/* Respecteer prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce){
+  .rucs-slide.type_b .popup,
+  .rucs-slide.type_a .panel-left{
+    transition: none !important;
+    transform: none !important;
+  }
+}
 
 /* ====== NAV & DOTS ====== */
 .rucs-slider .nav{
