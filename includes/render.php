@@ -68,7 +68,15 @@ add_shortcode('nlsb_slider', function($atts){
         <p><a class="button" href="<?php echo esc_url($shared_btnUrl); ?>"><?php echo esc_html($shared_btnTxt); ?></a></p>
       <?php endif; ?>
     </div>
-
+        <style id="nlsb-inline-modal">
+.rucs-info-toggle{position:absolute;left:50%;top:8px;transform:translateX(-50%);z-index:5;width:44px;height:44px;border:0;border-radius:999px;cursor:pointer;background:#fff;color:#111;box-shadow:0 6px 18px rgba(0,0,0,.18);font-size:24px;font-weight:700;line-height:44px}
+.rucs-slider.modal-open .rucs-info-toggle{font-size:0}
+.rucs-slider.modal-open .rucs-info-toggle::before{content:"×";font-size:24px;line-height:44px;display:block}
+.rucs-slider.modal-open::before{content:"";position:fixed;inset:0;z-index:9900;background:rgba(0,0,0,.6);backdrop-filter:saturate(120%) blur(2px)}
+.rucs-info-modal{position:fixed;z-index:9901;top:clamp(12px,3vh,32px);left:clamp(12px,3vw,32px);width:min(1100px,calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:auto;background:#fff;color:#111;border-radius:20px 0 20px 20px;box-shadow:0 20px 50px rgba(0,0,0,.45);padding:clamp(20px,3vw,40px);transform:translateY(-12px) scale(.98);opacity:0;pointer-events:none;transition:transform .28s ease,opacity .28s ease}
+.rucs-slider.modal-open .rucs-info-modal{opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
+.rucs-info-close{position:absolute;top:10px;right:10px;width:36px;height:36px;border:0;border-radius:50%;background:rgba(0,0,0,.08);color:#000;font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer}
+</style>
     <div class="rucs-track" tabindex="0" aria-roledescription="carousel">
       <?php foreach($slides as $s):
         $id     = $s->ID;

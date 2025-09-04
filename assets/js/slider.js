@@ -69,10 +69,17 @@
       infoToggle.setAttribute('aria-expanded','false');
     }
 
-    infoToggle?.addEventListener('click', () => {
+    // ➕ Toggle: voorkom dat andere lagen de klik 'opeten'
+    infoToggle?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       root.classList.contains('modal-open') ? closeInfo() : openInfo();
     });
-    infoClose?.addEventListener('click', closeInfo);
+    infoClose?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeInfo();
+    });
     root.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') closeInfo();
     });
