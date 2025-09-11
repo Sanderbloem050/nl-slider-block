@@ -329,3 +329,46 @@
   z-index: 10000 !important;
   pointer-events: auto;
 }
+
+.rucs-slider.modal-open .rucs-track,
+.rucs-slider.modal-open .nav,
+.rucs-slider.modal-open .rucs-dots { pointer-events: none; }
+
+/* Info bar (Type B): top balk i.p.v. ronde knop */
+.rucs-slide.type_b .info-bar{
+  position:absolute; left:0; right:0; top:0;
+  height: var(--ru-info-h, 52px);
+  background: var(--ru-info-bg, var(--ru-accent, #ffeb00));
+  color: var(--ru-text);
+  display:flex; align-items:center; justify-content:flex-end;
+  padding: 0 var(--ru-pad);
+  cursor:pointer;
+  box-shadow: 0 2px 0 rgba(0,0,0,.05) inset;
+  z-index:3;
+}
+.rucs-slide.type_b .info-plus{
+  font-size: 22px; line-height: 1; user-select:none;
+  display:inline-flex; align-items:center; justify-content:center;
+  width: 34px; height: 34px; border-radius: 999px;
+  background: rgba(255,255,255,.85);
+}
+.rucs-slide.type_b .info-bar:focus { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* We gebruiken niet langer .popup-toggle bij type_b */
+.rucs-slide.type_b .popup{
+  position:absolute;
+  left:var(--ru-pad);
+  bottom:calc(var(--ru-pad) + var(--ru-cap-h, 0px));
+  max-width:min(640px, 92%);
+  background:var(--ru-accent, #ffeb00);
+  color:var(--ru-text);
+  border-radius:12px; box-shadow:0 12px 28px rgba(0,0,0,.22);
+  padding:var(--ru-pad); z-index:3;
+  transform:translateY(12px); opacity:0; pointer-events:none;
+  transition:transform .45s ease, opacity .45s ease;
+}
+.rucs-slide.type_b.popup-open .popup{ transform:translateY(0); opacity:1; pointer-events:auto; }
+
+@media (max-width:780px){
+  .rucs-slide.type_b .info-bar{ height: var(--ru-info-h-mobile, 44px); }
+}

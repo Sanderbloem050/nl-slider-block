@@ -12,6 +12,11 @@ add_action('add_meta_boxes', function () {
 function nlsb_slider_settings_box($post){
   $h  = get_post_meta($post->ID, '_nlsb_height',  true) ?: '65vh';
   $mh = get_post_meta($post->ID, '_nlsb_mheight', true) ?: '60vh';
+  
+  // NIEUW: info-balk instellingen
+  $ib_mode  = get_post_meta($post->ID, '_nlsb_infobar_mode',  true) ?: 'accent'; // 'accent' | 'custom'
+  $ib_color = get_post_meta($post->ID, '_nlsb_infobar_color', true) ?: '#111111';
+  
   wp_nonce_field('nlsb_save_slider','nlsb_nonce_slider');
   ?>
   <p><label>Hoogte (desktop/tablet)
@@ -20,6 +25,15 @@ function nlsb_slider_settings_box($post){
   <p><label>Hoogte (mobiel)
     <input type="text" name="nlsb_mheight" value="<?php echo esc_attr($mh); ?>" class="widefat" placeholder="bijv. 60vh">
   </label></p>
+  <hr>
+  <p><strong>Info-balk (top) kleur</strong></p>
+  <p>
+    <label><input type="radio" name="nlsb_infobar_mode" value="accent" <?php checked($ib_mode,'accent'); ?>>
+      Gebruik <em>accentkleur van de slide</em></label><br>
+    <label><input type="radio" name="nlsb_infobar_mode" value="custom" <?php checked($ib_mode,'custom'); ?>>
+      Gebruik <em>vaste kleur</em> → </label>
+    <input type="color" name="nlsb_infobar_color" value="<?php echo esc_attr($ib_color); ?>" style="vertical-align:middle;">
+  </p>
   <?php
 }
 
@@ -271,6 +285,11 @@ add_action('save_post_nlsb_slider', function ($post_id){
 
   update_post_meta($post_id, '_nlsb_height',  sanitize_text_field($_POST['nlsb_height']  ?? '65vh'));
   update_post_meta($post_id, '_nlsb_mheight', sanitize_text_field($_POST['nlsb_mheight'] ?? '60vh'));
+
+  $mode  = in_array($_POST['nlsb_infobar_mode'] ?? 'accent', ['accent','custom'], true) ? $_POST['nlsb_infobar_mode'] : 'accent';
+  $color = sanitize_hex_color($_POST['nlsb_infobar_color'] ?? '#111111');
+  update_post_meta($post_id, '_nlsb_infobar_mode',  $mode);
+  update_post_meta($post_id, '_nlsb_infobar_color', $color ?: '#111111');
 });
 
 /** Save slide */

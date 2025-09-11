@@ -1,3 +1,4 @@
+/* NL Slider Block – frontend */
 (function () {
   function init(root) {
     const track = root.querySelector('.rucs-track');
@@ -57,6 +58,7 @@
     const infoToggle = root.querySelector('.rucs-info-toggle');
     const infoModal  = root.querySelector('#rucs-info-modal');
     const infoClose  = root.querySelector('.rucs-info-close');
+    const infoBars   = root.querySelectorAll('.info-bar'); // type-B balken
 
     function openInfo(){
       if (!infoToggle || !infoModal) return;
@@ -69,26 +71,35 @@
       infoToggle.setAttribute('aria-expanded','false');
     }
 
-    // ➕ Toggle: voorkom dat andere lagen de klik 'opeten'
+    // Centrale + knop
     infoToggle?.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
       root.classList.contains('modal-open') ? closeInfo() : openInfo();
     });
+    // Sluiten in modal
     infoClose?.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
       closeInfo();
     });
+    // ESC sluit modal
     root.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') closeInfo();
     });
+    // Type-B topbalken openen modal
+    infoBars.forEach((bar) => {
+      bar.addEventListener('click', (e) => {
+        e.preventDefault();
+        openInfo();
+      });
+    });
 
-    // ---- Active states (sluit ook modal + per-slide states) ----
+    // ---- Active states (sluit/laat modal staan bij wissel) ----
     function setActiveSlideClasses(raw){
       const logical = toLogical(raw);
       slides.forEach(s => {
-        s.classList.remove('is-active-visible','bar-open'); // sluit mobiel paneel Type A
+        s.classList.remove('is-active-visible','bar-open'); // reset evt. mobiele state
         s.querySelector('.accent-toggle')?.setAttribute('aria-expanded','false');
       });
       originals.forEach(s => s.classList.remove('is-active'));
@@ -97,7 +108,8 @@
       if (originals[logical]) originals[logical].classList.add('is-active');
 
       setActiveDot(logical);
-      closeInfo(); // bij wissel: globale modal dicht
+      // Wil je altijd modal sluiten bij slide-wissel? uncomment:
+      // if (root.classList.contains('modal-open')) closeInfo();
     }
 
     // ---- Startpositie ----
@@ -106,18 +118,24 @@
 
     // ---- Navigatie ----
     prev && prev.addEventListener('click', () => {
+      if (root.classList.contains('modal-open')) return; // blokkeer als modal open
       const i = toLogical(rawIndex());
       goLogical((i - 1 + L) % L);
     });
     next && next.addEventListener('click', () => {
+      if (root.classList.contains('modal-open')) return;
       const i = toLogical(rawIndex());
       goLogical((i + 1) % L);
     });
-    dots.forEach((d, di) => d.addEventListener('click', () => goLogical(di)));
+    dots.forEach((d, di) => d.addEventListener('click', () => {
+      if (root.classList.contains('modal-open')) return;
+      goLogical(di);
+    }));
 
     // ---- Scroll-sync (infinite) ----
     let timer;
     track.addEventListener('scroll', () => {
+      if (root.classList.contains('modal-open')) return; // negeer zolang modal open is
       clearTimeout(timer);
       timer = setTimeout(() => {
         let r = rawIndex();
@@ -131,6 +149,7 @@
 
     // ---- Keyboard pijlen ----
     root.addEventListener('keydown', (e) => {
+      if (root.classList.contains('modal-open')) return;
       if (e.key === 'ArrowRight') next?.click();
       if (e.key === 'ArrowLeft')  prev?.click();
     });
@@ -167,11 +186,16 @@
     }
 
     applyAccentForViewport();
-    mq.addEventListener ? mq.addEventListener('change', applyAccentForViewport)
-                        : mq.addListener(applyAccentForViewport);
+    if (mq.addEventListener) {
+      mq.addEventListener('change', applyAccentForViewport);
+    } else if (mq.addListener) {
+      // Safari < 14
+      mq.addListener(applyAccentForViewport);
+    }
 
     // ---- Resize: positie en toggles opnieuw toepassen ----
     window.addEventListener('resize', () => {
+      if (root.classList.contains('modal-open')) return; // laat modal met rust
       const logical = toLogical(rawIndex());
       jumpToRaw(toRaw(logical));
       setActiveSlideClasses(toRaw(logical));
