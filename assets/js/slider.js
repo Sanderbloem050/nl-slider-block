@@ -54,48 +54,81 @@
       });
     }
 
-    // ====== Globale info-modal (slider-breed) ======
-    const infoToggle = root.querySelector('.rucs-info-toggle');
-    const infoModal  = root.querySelector('#rucs-info-modal');
-    const infoClose  = root.querySelector('.rucs-info-close');
-    const infoBars   = root.querySelectorAll('.info-bar'); // type-B balken
+    // ====== Globale info-modal (alleen via de pill) ======
+    const infoModal = root.querySelector('#rucs-info-modal');
+    const infoClose = root.querySelector('.rucs-info-close');
+    const infoPills = root.querySelectorAll('.info-pill');
 
+    function isOpen(){ return root.classList.contains('modal-open'); }
     function openInfo(){
-      if (!infoToggle || !infoModal) return;
+      if (!infoModal) return;
       root.classList.add('modal-open');
-      infoToggle.setAttribute('aria-expanded','true');
     }
     function closeInfo(){
-      if (!infoToggle || !infoModal) return;
+      if (!infoModal) return;
       root.classList.remove('modal-open');
-      infoToggle.setAttribute('aria-expanded','false');
     }
 
-    // Centrale + knop
-    infoToggle?.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      root.classList.contains('modal-open') ? closeInfo() : openInfo();
-    });
-    // Sluiten in modal
-    infoClose?.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      closeInfo();
-    });
-    // ESC sluit modal
-    root.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeInfo();
-    });
-    // Type-B topbalken openen modal
-    infoBars.forEach((bar) => {
-      bar.addEventListener('click', (e) => {
+    // Meet & style modal op basis van de geklikte pill/slide
+    function positionModalFromPill(pill){
+      const slide = pill.closest('.rucs-slide');
+      const rootRect  = root.getBoundingClientRect();
+      const pillRect  = pill.getBoundingClientRect();
+      const slideCS   = getComputedStyle(slide);
+
+      // 1) Breedte gelijk aan pill (in pixels)
+      root.style.setProperty('--ru-modal-w', pillRect.width + 'px');
+
+      // 2) Positioneren links gelijk aan slider, top net onder de balk
+      const barH = parseFloat(slideCS.getPropertyValue('--ru-info-h')) || 52;
+      const top  = window.scrollY + rootRect.top + barH + 8;
+      const left = window.scrollX + rootRect.left;
+      root.style.setProperty('--nlsb-modal-left', left + 'px');
+      root.style.setProperty('--nlsb-modal-top',  top  + 'px');
+
+      // 3) Kleuren: bg = info-bg of accent; text per slide (fallback #111)
+      const bg   =
+        slideCS.getPropertyValue('--ru-info-bg')?.trim() ||
+        slideCS.getPropertyValue('--ru-accent')?.trim() ||
+        '#ffffff';
+      const text =
+        slideCS.getPropertyValue('--ru-modal-text')?.trim() ||
+        '#111111';
+
+      root.style.setProperty('--ru-modal-bg',   bg);
+      root.style.setProperty('--ru-modal-text', text);
+    }
+
+    // Toggle via pill
+    infoPills.forEach((pill) => {
+      const toggle = (e) => {
         e.preventDefault();
-        openInfo();
+        if (isOpen()) {
+          closeInfo();
+        } else {
+          positionModalFromPill(pill);
+          openInfo();
+        }
+      };
+      pill.addEventListener('click', toggle);
+      pill.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') toggle(e);
       });
     });
 
-    // ---- Active states (sluit/laat modal staan bij wissel) ----
+    // Sluiten via X
+    infoClose?.addEventListener('click', (e) => { e.preventDefault(); closeInfo(); });
+    // Sluiten via Esc
+    root.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeInfo(); });
+    // Sluiten bij klik BUITEN de modal (overlay/slider)
+    root.addEventListener('click', (e) => {
+      if (!isOpen()) return;
+      const insideModal = e.target.closest('.rucs-info-modal');
+      const onPill      = e.target.closest('.info-pill');
+      if (!insideModal && !onPill) closeInfo();
+    }, true);
+
+    // ---- Active states ----
     function setActiveSlideClasses(raw){
       const logical = toLogical(raw);
       slides.forEach(s => {
@@ -108,8 +141,8 @@
       if (originals[logical]) originals[logical].classList.add('is-active');
 
       setActiveDot(logical);
-      // Wil je altijd modal sluiten bij slide-wissel? uncomment:
-      // if (root.classList.contains('modal-open')) closeInfo();
+      // Wil je altijd modal sluiten bij slide-wissel?
+      // if (isOpen()) closeInfo();
     }
 
     // ---- Startpositie ----
@@ -118,24 +151,24 @@
 
     // ---- Navigatie ----
     prev && prev.addEventListener('click', () => {
-      if (root.classList.contains('modal-open')) return; // blokkeer als modal open
+      if (isOpen()) return; // blokkeer als modal open
       const i = toLogical(rawIndex());
       goLogical((i - 1 + L) % L);
     });
     next && next.addEventListener('click', () => {
-      if (root.classList.contains('modal-open')) return;
+      if (isOpen()) return;
       const i = toLogical(rawIndex());
       goLogical((i + 1) % L);
     });
     dots.forEach((d, di) => d.addEventListener('click', () => {
-      if (root.classList.contains('modal-open')) return;
+      if (isOpen()) return;
       goLogical(di);
     }));
 
     // ---- Scroll-sync (infinite) ----
     let timer;
     track.addEventListener('scroll', () => {
-      if (root.classList.contains('modal-open')) return; // negeer zolang modal open is
+      if (isOpen()) return; // negeer zolang modal open is
       clearTimeout(timer);
       timer = setTimeout(() => {
         let r = rawIndex();
@@ -149,13 +182,13 @@
 
     // ---- Keyboard pijlen ----
     root.addEventListener('keydown', (e) => {
-      if (root.classList.contains('modal-open')) return;
+      if (isOpen()) return;
       if (e.key === 'ArrowRight') next?.click();
       if (e.key === 'ArrowLeft')  prev?.click();
     });
 
     // ============================================================
-    // Accent-balk toggle (MOBIEL) – gescoped per slider (Type A)
+    // Accent-balk toggle (MOBIEL) – Type A
     // ============================================================
     const mq = window.matchMedia('(max-width: 782px)');
 
@@ -186,16 +219,12 @@
     }
 
     applyAccentForViewport();
-    if (mq.addEventListener) {
-      mq.addEventListener('change', applyAccentForViewport);
-    } else if (mq.addListener) {
-      // Safari < 14
-      mq.addListener(applyAccentForViewport);
-    }
+    if (mq.addEventListener) mq.addEventListener('change', applyAccentForViewport);
+    else if (mq.addListener) mq.addListener(applyAccentForViewport);
 
     // ---- Resize: positie en toggles opnieuw toepassen ----
     window.addEventListener('resize', () => {
-      if (root.classList.contains('modal-open')) return; // laat modal met rust
+      if (isOpen()) return; // laat modal met rust
       const logical = toLogical(rawIndex());
       jumpToRaw(toRaw(logical));
       setActiveSlideClasses(toRaw(logical));

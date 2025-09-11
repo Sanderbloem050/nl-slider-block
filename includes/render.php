@@ -44,7 +44,7 @@ add_shortcode('nlsb_slider', function($atts){
   wp_enqueue_style('nlsb-slider');
   wp_enqueue_script('nlsb-slider');
 
-  // Uniek id per instance zodat inline script veilig is
+  // Uniek id per instance (voor JS scoping indien nodig)
   $wrap_id = 'nlsb-slider-'.uniqid();
 
   ob_start(); ?>
@@ -53,12 +53,7 @@ add_shortcode('nlsb_slider', function($atts){
               --rucs-height-mobile:<?php echo esc_attr($mheight); ?>;
               --ru-accent: <?php echo esc_attr($shared_accent); ?>;">
 
-    <!-- Centrale toggle + modal (gebruikt content van slide 1) -->
-    <button class="rucs-info-toggle"
-            aria-expanded="false"
-            aria-controls="rucs-info-modal"
-            title="<?php esc_attr_e('Toon informatie','nlsb'); ?>">+</button>
-
+    <!-- Globale info-modal (inhoud komt van slide 1) -->
     <div id="rucs-info-modal"
          class="rucs-info-modal"
          role="dialog"
@@ -76,33 +71,76 @@ add_shortcode('nlsb_slider', function($atts){
       <?php endif; ?>
     </div>
 
-    <!-- Inline styles voor modal (mag ook naar assets/css/slider.css) -->
+    <!-- Inline styles (mag later naar assets/css/slider.css verplaatst worden) -->
     <style id="nlsb-inline-modal">
-      .rucs-info-toggle{position:absolute;left:50%;top:8px;transform:translateX(-50%);z-index:5;width:44px;height:44px;border:0;border-radius:999px;cursor:pointer;background:#fff;color:#111;box-shadow:0 6px 18px rgba(0,0,0,.18);font-size:24px;font-weight:700;line-height:44px}
-      .rucs-slider.modal-open .rucs-info-toggle{font-size:0}
-      .rucs-slider.modal-open .rucs-info-toggle::before{content:"×";font-size:24px;line-height:44px;display:block}
-      .rucs-slider.modal-open::before{content:"";position:fixed;inset:0;z-index:9900;background:rgba(0,0,0,.6);backdrop-filter:saturate(120%) blur(2px)}
-      .rucs-info-modal{position:fixed;z-index:9901;top:clamp(12px,3vh,32px);left:clamp(12px,3vw,32px);width:min(1100px,calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:auto;background:#fff;color:#111;border-radius:20px 0 20px 20px;box-shadow:0 20px 50px rgba(0,0,0,.45);padding:clamp(20px,3vw,40px);transform:translateY(-12px) scale(.98);opacity:0;pointer-events:none;transition:transform .28s ease,opacity .28s ease}
-      .rucs-slider.modal-open .rucs-info-modal{opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
-      .rucs-info-close{position:absolute;top:10px;right:10px;width:36px;height:36px;border:0;border-radius:50%;background:rgba(0,0,0,.08);color:#000;font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer}
-      /* Topbalk voor Type B */
-      .rucs-slide.type_b .info-bar{
+      /* Overlay wanneer modal open is */
+      .rucs-slider.modal-open::before{
+        content:""; position:fixed; inset:0; z-index:9900;
+        background:rgba(0,0,0,.6); backdrop-filter:saturate(120%) blur(2px);
+      }
+      /* Modal – positie/maat via CSS vars die JS zet o.b.v. pill */
+      .rucs-info-modal{
+        position:fixed; z-index:9901;
+
+        left: var(--nlsb-modal-left, clamp(12px,3vw,32px));
+        top:  var(--nlsb-modal-top,  clamp(12px,3vh,32px));
+        width: min(var(--ru-modal-w, 50vw), calc(100vw - 24px));
+
+        max-height:85vh; overflow:auto;
+
+        background: var(--ru-modal-bg, var(--ru-accent, #ffffff));
+        color:      var(--ru-modal-text, #111111);
+
+        border-radius:20px 0 20px 20px;
+        box-shadow:0 20px 50px rgba(0,0,0,.45);
+        padding:clamp(20px,3vw,40px);
+
+        transform:translateY(-12px) scale(.98);
+        opacity:0; pointer-events:none;
+        transition:transform .28s ease,opacity .28s ease;
+      }
+      .rucs-slider.modal-open .rucs-info-modal{
+        opacity:1; pointer-events:auto; transform:translateY(0) scale(1);
+      }
+      .rucs-info-close{
+        position:absolute; top:10px; right:10px;
+        width:36px; height:36px; border:0; border-radius:50%;
+        background:rgba(0,0,0,.08); color:#000; font-size:20px;
+        display:flex; align-items:center; justify-content:center; cursor:pointer;
+      }
+
+      /* Topbar (transparant) + pill (50%, kleur per slide of custom sliderkleur) */
+      .rucs-slide .info-bar{
         position:absolute; left:0; right:0; top:0;
         height: var(--ru-info-h, 52px);
+        background: transparent;
+        display:flex; align-items:center;
+        z-index:3;
+        pointer-events:none; /* alleen de pill is klikbaar */
+      }
+      .rucs-slide .info-pill{
+        height: var(--ru-info-h, 52px);
+        width: 50%;
+        margin-left: 0;
         background: var(--ru-info-bg, var(--ru-accent, #ffeb00));
         color: var(--ru-text, #111);
-        display:flex; align-items:center; justify-content:flex-end;
-        padding: 0 var(--ru-pad, clamp(18px,3vw,36px));
-        cursor:pointer; box-shadow: 0 2px 0 rgba(0,0,0,.05) inset; z-index:3;
+        border:0; cursor:pointer;
+        border-radius: 0 999px 999px 0;  /* afgerond rechts */
+        display:flex; align-items:center; justify-content:flex-end; /* plus rechts */
+        padding: 0 14px;
+        box-shadow: 0 6px 18px rgba(0,0,0,.18);
+        pointer-events:auto; /* klikbaar */
       }
-      .rucs-slide.type_b .info-plus{
-        font-size: 22px; line-height: 1; user-select:none;
+      .rucs-slide .info-pill:focus{ outline:2px solid #000; outline-offset:2px; }
+      .rucs-slide .info-plus{
+        font-size:22px; line-height:1; user-select:none;
         display:inline-flex; align-items:center; justify-content:center;
-        width: 34px; height: 34px; border-radius: 999px;
-        background: rgba(255,255,255,.85);
+        width:28px; height:28px; border-radius:999px;
       }
+
       @media (max-width:780px){
-        .rucs-slide.type_b .info-bar{ height: var(--ru-info-h-mobile, 44px); }
+        .rucs-slide .info-bar{ height: var(--ru-info-h-mobile, 44px); }
+        .rucs-slide .info-pill{ height: var(--ru-info-h-mobile, 44px); width: 50%; }
       }
     </style>
 
@@ -123,14 +161,26 @@ add_shortcode('nlsb_slider', function($atts){
         $btnTxt = get_post_meta($id,'_nlsb_btnText', true) ?: '';
         $btnUrl = get_post_meta($id,'_nlsb_btnUrl',  true) ?: '';
 
-        // Kleur voor de balk in type B: slider custom of slide accent
+        // Per-slide modal tekstkleur (optioneel)
+        $modalText = get_post_meta($id,'_nlsb_modalText', true) ?: '';
+
+        // Kleur voor de balk/pill: slider custom of slide accent
         $bar_bg = ($info_mode === 'custom' && $info_color) ? $info_color : $accent;
       ?>
         <section class="rucs-slide <?php echo esc_attr($layout); ?>"
           style="<?php echo $img ? "background-image:url('".esc_url($img)."');" : ''; ?>
                  --ru-left: <?php echo esc_attr($left); ?>;
                  --ru-accent: <?php echo esc_attr($accent); ?>;
+                 <?php if ($modalText) echo "--ru-modal-text: ".esc_attr($modalText).";"; ?>
                  <?php if ($capH!=='') echo "--ru-cap-h: ".esc_attr($capH).";"; ?>">
+
+          <!-- TOPBAR: transparante balk + pill (opent globale modal) -->
+          <div class="info-bar" style="--ru-info-bg: <?php echo esc_attr($bar_bg); ?>;">
+            <button class="info-pill" type="button" aria-label="<?php esc_attr_e('Toon informatie','nlsb'); ?>" aria-controls="rucs-info-modal">
+              <span class="info-plus" aria-hidden="true">+</span>
+            </button>
+          </div>
+
           <?php if ($layout==='type_a'): ?>
             <div class="panel-left">
               <?php if ($title): ?><h2 class="title"><?php echo esc_html($title); ?></h2><?php endif; ?>
@@ -138,13 +188,7 @@ add_shortcode('nlsb_slider', function($atts){
               <?php if ($btnTxt && $btnUrl): ?><p><a class="button" href="<?php echo esc_url($btnUrl); ?>"><?php echo esc_html($btnTxt); ?></a></p><?php endif; ?>
             </div>
           <?php else: // type_b ?>
-            <!-- Topbalk die dezelfde modal opent -->
-            <div class="info-bar" style="--ru-info-bg: <?php echo esc_attr($bar_bg); ?>;" role="button" tabindex="0" aria-label="<?php esc_attr_e('Toon informatie','nlsb'); ?>">
-              <span class="info-plus" aria-hidden="true">+</span>
-            </div>
-
             <div class="caption"><?php echo esc_html($caption ?: $title); ?></div>
-            <!-- Per-slide popup is niet nodig; globale modal wordt gebruikt -->
           <?php endif; ?>
         </section>
       <?php endforeach; ?>

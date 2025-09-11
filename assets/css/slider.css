@@ -1,60 +1,111 @@
 :root{
-  --ru-text:#111;
-  --ru-pad:clamp(18px,3vw,36px);
-  --rucs-nav-w: 44px;   /* breedte-zone navknoppen */
-  --rucs-pad-x: 16px;   /* extra marge voor content links */
+  --ru-text: #111;
+  --ru-pad: clamp(18px, 3vw, 36px);
+  --rucs-nav-w: 44px;       /* breedte-zone navknoppen links/rechts */
+  --rucs-pad-x: 16px;       /* extra marge voor content links */
+
+  /* Topbar/pill defaults (kun je overschrijven op .rucs-slider of .rucs-slide) */
+  --ru-info-h: 52px;                 /* hoogte topbalk desktop */
+  --ru-info-h-mobile: 44px;          /* hoogte topbalk mobiel */
+  --ru-pill-w: 320px;                /* breedte witte pill desktop */
+  --ru-pill-w-mobile: 240px;         /* breedte witte pill mobiel */
+  --ru-pill-left: 8px;               /* afstand pill vanaf links */
 }
 
-/* ====== SLIDER SHELL ====== */
-.rucs-slider{ position:relative; overflow:hidden; }
+/* =========================================================
+   SLIDER SHELL
+   ========================================================= */
+.rucs-slider{ position: relative; overflow: hidden; }
 .rucs-track{
-  display:flex; gap:0;
-  overflow-x:auto; scroll-snap-type:x mandatory; scroll-behavior:smooth;
-  -webkit-overflow-scrolling:touch;
-  scrollbar-width:none; -ms-overflow-style:none;
+  position: relative;               /* stacking context onder toggle */
+  z-index: 1;
+  display: flex; gap: 0;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; -ms-overflow-style: none;
 }
-.rucs-track::-webkit-scrollbar{ display:none; }
+.rucs-track::-webkit-scrollbar{ display: none; }
 
-/* ====== SLIDE BASIS ====== */
+/* =========================================================
+   SLIDE BASIS
+   ========================================================= */
 .rucs-slide{
-  flex:0 0 100%;
+  flex: 0 0 100%;
   min-height: var(--rucs-height, min(65vh, 720px));
-  position:relative;
-  background-size:cover;          /* beeldvullend */
-  background-position:center;     /* netjes gecropt */
-  background-repeat:no-repeat;
-  scroll-snap-align:center;
-  overflow:hidden;                 /* nodig voor inklappende balk */
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  scroll-snap-align: center;
+  overflow: hidden;
 }
 @media (max-width: 782px){
   .rucs-slide{ min-height: var(--rucs-height-mobile, var(--rucs-height, 60vh)); }
 }
 
-/* ====== TYPE A ====== */
-/* Content-pane links (desktop) */
+/* =========================================================
+   TOPBAR + PILL (ALLE TYPES)
+   ========================================================= */
+.rucs-slide .info-bar{
+  position: absolute; left: 0; right: 0; top: 0;
+  height: var(--ru-info-h);
+  background: transparent;               /* bar is transparant */
+  display: flex; align-items: center;
+  z-index: 3;
+  pointer-events: none;                   /* alleen de pill is klikbaar */
+}
+
+/* Pill: 50% breed, strak tegen links en boven; afgeronde rechterkant; plus rechts */
+.rucs-slide .info-pill{
+  height: var(--ru-info-h);               /* exact even hoog als de bar */
+  width: 50%;                             
+  margin-left: 0;                          /* strak tegen links */
+  background: var(--ru-info-bg, var(--ru-accent, #ffeb00));
+  color: var(--ru-text, #111);
+  border: 0; cursor: pointer;
+  border-radius: 0 999px 999px 0;          /* afgerond rechts */
+  display: flex; align-items: center; justify-content: flex-end;  /* plus rechts */
+  padding: 0 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.18);
+  pointer-events: auto;                    /* wel klikbaar */
+}
+.rucs-slide .info-pill:focus{ outline: 2px solid #000; outline-offset: 2px; }
+.rucs-slide .info-plus{
+  font-size: 22px; line-height: 1; user-select: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 999px;
+}
+
+@media (max-width: 780px){
+  .rucs-slide .info-bar{ height: var(--ru-info-h-mobile); }
+  .rucs-slide .info-pill{
+    height: var(--ru-info-h-mobile);
+    width: 50%;
+  }
+}
+
+
+
+/* =========================================================
+   TYPE A
+   ========================================================= */
+/* Paneel links (desktop) */
 .rucs-slide.type_a .panel-left{
-  position:absolute; inset:0 auto 0 0;
-  width:var(--ru-left, 600px);
-  background:var(--ru-accent, #ffeb00);
-  color:var(--ru-text);
-  padding:var(--ru-pad);
-  display:flex; flex-direction:column; justify-content:center;
-  z-index:2;  /* boven accentbalk */
+  position: absolute; inset: 0 auto 0 0;
+  width: var(--ru-left, 600px);
+  background: var(--ru-accent, #ffeb00);
+  color: var(--ru-text);
+  padding: var(--ru-pad);
+  display: flex; flex-direction: column; justify-content: center;
+  z-index: 2; /* boven accentbalk/pill */
 }
+/* Typografie */
+.rucs-slide .title{ font-size: clamp(28px, 5vw, 56px); line-height: 1.05; margin: 0 0 12px; font-weight: 800; }
+.rucs-slide .text{  font-size: clamp(16px, 2vw, 18px); line-height: 1.6; }
 
-/* Teksttypografie */
-.rucs-slide .title{ font-size:clamp(28px,5vw,56px); line-height:1.05; margin:0 0 12px; font-weight:800; }
-.rucs-slide .text{  font-size:clamp(16px,2vw,18px); line-height:1.6; }
-
-/* Rechter ACCENTBALK (Type A)
-   - Desktop: UIT
-   - Mobiel: hieronder aan bij .bar-open */
-.rucs-slide.type_a::after{
-  content:"";
-  display:none; /* geen balk op desktop */
-}
-
-/* Extra padding links zodat pijlen niet in de tekst vallen */
+/* Extra padding links zodat pijlen niet botsten met tekst */
 .rucs-slide.type_a .panel-left{
   padding-left: calc(var(--rucs-nav-w) + var(--rucs-pad-x));
   padding-right: 16px;
@@ -66,309 +117,159 @@
   }
 }
 
-/* ====== TYPE A – MOBIEL: pane + balk samen inklapbaar ====== */
+/* ---- Mobiel: pane + accentbalk inklapbaar ---- */
 @media (max-width: 782px){
-  /* Accentbalk alleen op mobiel; standaard onzichtbaar, open = zichtbaar */
+  /* smalle accentbalk aan rechterkant (visueel bij dichtklappen) */
   .rucs-slide.type_a::after{
-    display:block;
-    position:absolute; top:0; right:0; bottom:0;
+    content: "";
+    position: absolute; top: 0; right: 0; bottom: 0;
     width: var(--ru-bar-w-mobile, 10px);
     background: var(--ru-accent, #ffeb00);
-    opacity: 0;
-    transition: opacity .25s ease;
-    z-index:1;
+    opacity: 0; transition: opacity .25s ease;
+    z-index: 1;
   }
   .rucs-slide.type_a.bar-open::after{ opacity: 1; }
 
-  /* Contentpane: dicht = uit beeld; open = in beeld */
+  /* Paneel: dicht = buiten beeld; open = in beeld */
   .rucs-slide.type_a .panel-left{
-    inset:auto 0 0 0;
-    width:100%;
-    background: var(--ru-accent, #ffeb00);
-    color: var(--ru-text);
-    transform: translateY(100%);
-    opacity: 0;
-    pointer-events: none;
+    inset: auto 0 0 0; width: 100%;
+    transform: translateY(100%); opacity: 0; pointer-events: none;
     transition: transform .28s ease, opacity .28s ease;
   }
   .rucs-slide.type_a.bar-open .panel-left{
-    transform: translateY(0);
-    opacity: 1;
-    pointer-events: auto;
+    transform: translateY(0); opacity: 1; pointer-events: auto;
   }
 
   /* Toggle-icoon (mobiel) */
   .rucs-slide.type_a .accent-toggle{
-    display:inline-flex;
-    position:absolute;
-    top:8px; right:8px;
-    width:34px; height:34px;
-    align-items:center; justify-content:center;
-    border-radius:999px; border:0;
-    background:rgba(0,0,0,.45); color:#fff;
-    line-height:1; z-index:4;
+    display: inline-flex; position: absolute; top: 8px; right: 8px;
+    width: 34px; height: 34px; align-items: center; justify-content: center;
+    border-radius: 999px; border: 0; background: rgba(0,0,0,.45); color: #fff;
+    line-height: 1; z-index: 4;
   }
-  .rucs-slide.type_a .accent-toggle svg{ width:18px; height:18px; pointer-events:none; }
+  .rucs-slide.type_a .accent-toggle svg{ width: 18px; height: 18px; pointer-events: none; }
 }
 
-/* ====== TYPE B ====== */
-/* Caption-balk onderin (blijft) */
+/* =========================================================
+   TYPE B
+   ========================================================= */
 .rucs-slide.type_b .caption{
-  position:absolute; left:0; right:0; bottom:0; height: var(--ru-cap-h, auto);
-  background:var(--ru-accent, #ffeb00); color:var(--ru-text);
-  padding:var(--ru-pad); font-weight:700; font-size:clamp(18px,3.2vw,36px);
-  display:flex; align-items:center;
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: var(--ru-cap-h, auto);
+  background: var(--ru-accent, #ffeb00); color: var(--ru-text);
+  padding: var(--ru-pad);
+  font-weight: 700; font-size: clamp(18px, 3.2vw, 36px);
+  display: flex; align-items: center;
 }
 
-/* Toggle-knop: centreer bovenin en toon '+' / '×' */
-.rucs-slide.type_b .popup-toggle{
-  position:absolute;
-  left:50%; top:8px;
-  transform:translateX(-50%);
-  z-index:4;
-  width:44px; height:44px;
-  border-radius:999px;
-  border:0; cursor:pointer;
-  background:#fff; color:#111;
-  box-shadow:0 6px 18px rgba(0,0,0,.18);
-  font-size:0; line-height:1; /* we gebruiken ::before */
-}
-.rucs-slide.type_b .popup-toggle::before{
-  content:"+";
-  font-size:24px;
-  font-weight:700;
-}
-.rucs-slide.type_b.popup-open .popup-toggle::before{
-  content:"×";
-}
+/* Oude (per-slide) popup volledig uit (we gebruiken globale modal) */
+.rucs-slide.type_b .popup,
+.rucs-slide.type_b .popup-toggle{ display: none !important; }
 
-/* ====== MODAL POPUP (Type B) – gecentreerd met animatie ====== */
-.rucs-slide.type_b .popup{
-  position: fixed;               /* los van slide lay-out */
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%) scale(.96);
-  max-width: 960px;
-  width: min(92%, 960px);
-  max-height: 85vh;
-  overflow-y: auto;
-
-  background: #fff;
-  color: #111;
-  border-radius: 16px;
-  box-shadow: 0 20px 50px rgba(0,0,0,.45);
-
-  padding: clamp(20px, 3vw, 40px);
-  z-index: 9999;
-
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .28s ease, transform .28s ease;
-}
-.rucs-slide.type_b.popup-open .popup{
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
-  pointer-events: auto;
-}
-
-/* Donkere overlay achter modal */
-.rucs-slide.type_b.popup-open::before{
-  content:"";
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.6);
-  backdrop-filter: saturate(120%) blur(2px);
-  z-index: 9998;
-}
-
-/* Close-button in modal */
-.rucs-slide.type_b .popup-close{
-  position:absolute;
-  top:12px; right:12px;
-  width:36px; height:36px;
-  border:0; border-radius:50%;
-  cursor:pointer;
-  background: rgba(0,0,0,.08);
-  color:#000; font-size:20px;
-  display:flex; align-items:center; justify-content:center;
-  transition: background .2s ease;
-}
-.rucs-slide.type_b .popup-close:hover{ background: rgba(0,0,0,.16); }
-
-/* Typografie in modal */
-.rucs-slide.type_b .popup-inner{ position:relative; }
-.rucs-slide.type_b .popup-title{
-  margin:0 0 .5em 0;
-  font-size: clamp(24px, 3.5vw, 36px);
-  font-weight: 800;
-  line-height:1.15;
-}
-.rucs-slide.type_b .popup-text{
-  font-size: clamp(16px, 2vw, 18px);
-  line-height: 1.6;
-  margin-bottom: 1em;
-}
-
-/* Respecteer prefers-reduced-motion */
-@media (prefers-reduced-motion: reduce){
-  .rucs-slide.type_b .popup,
-  .rucs-slide.type_a .panel-left{
-    transition: none !important;
-    transform: none !important;
-  }
-}
-
-/* ====== NAV & DOTS ====== */
-.rucs-slider .nav{
-  position:absolute; top:50%; transform:translateY(-50%);
-  background:rgba(0,0,0,.35); color:#fff; border:0;
-  width:var(--rucs-nav-w); height:42px; border-radius:999px; cursor:pointer;
-  display:grid; place-items:center; z-index:3;
-}
-.rucs-slider .nav.prev{ left:10px; } .rucs-slider .nav.next{ right:10px; }
-.rucs-slider .nav:focus{ outline:2px solid #fff; }
-
-.rucs-dots{ position:absolute; left:50%; bottom:12px; transform:translateX(-50%); display:flex; gap:6px; z-index:3; }
-.rucs-dots .dot{ width:10px; aspect-ratio:1/1; box-sizing:border-box; border-radius:50%; border:2px solid rgba(255,255,255,.9); background:rgba(255,255,255,.35); cursor:pointer; }
-.rucs-dots .dot.is-active{ background:#fff; }
-@media (max-width:780px){
-  .rucs-dots{ bottom:8px; } .rucs-dots .dot{ width:8px; }
-}
-/* ====== Globale info: toggle + grote kaart (content van slide 1) ====== */
-
-/* Plus-knop bovenin midden */
+/* =========================================================
+   GLOBALE INFO (centrale + knop + modal)
+   ========================================================= */
+/* + knop bovenin midden */
 .rucs-info-toggle{
-  position:absolute; left:50%; top:8px; transform:translateX(-50%);
-  z-index:5;
-  width:44px; height:44px;
-  border:0; border-radius:999px; cursor:pointer;
-  background:#fff; color:#111;
-  box-shadow:0 6px 18px rgba(0,0,0,.18);
-  font-size:24px; font-weight:700; line-height:44px;
+  position: absolute; left: 50%; top: 8px; transform: translateX(-50%);
+  z-index: 10000;                      /* boven alles */
+  width: 44px; height: 44px;
+  border: 0; border-radius: 999px; cursor: pointer;
+  background: #fff; color: #111;
+  box-shadow: 0 6px 18px rgba(0,0,0,.18);
+  font-size: 24px; font-weight: 700; line-height: 44px;
 }
-
-/* Verander + naar × als modal open is */
-.rucs-slider.modal-open .rucs-info-toggle{ font-size:0; }
+/* Verander + naar × wanneer open */
+.rucs-slider.modal-open .rucs-info-toggle{ font-size: 0; }
 .rucs-slider.modal-open .rucs-info-toggle::before{
-  content:"×"; font-size:24px; line-height:44px; display:block;
+  content: "×"; font-size: 24px; line-height: 44px; display: block;
 }
-
-/* Donkere overlay achter de kaart */
+/* ======= Globale info-modal (breedte = pill, positie onder topbar) ======= */
 .rucs-slider.modal-open::before{
-  content:"";
-  position:fixed; inset:0; z-index:9900;
-  background:rgba(0,0,0,.6);
-  backdrop-filter:saturate(120%) blur(2px);
+  content:""; position:fixed; inset:0; z-index:9900;
+  background:rgba(0,0,0,.6); backdrop-filter:saturate(120%) blur(2px);
 }
 
-/* De kaart zelf (links/boven, ruim en responsive) */
+/* Modal zelf */
 .rucs-info-modal{
-  position:fixed; z-index:9901;
-  top:clamp(12px,3vh,32px); left:clamp(12px,3vw,32px);
-  width:min(1100px, calc(100vw - 24px));
-  max-height:calc(100vh - 24px);
-  overflow:auto;
+  position: fixed; z-index: 9901;
 
-  background:#fff; color:#111;
-  border-radius:20px 0 20px 20px;   /* lichte ‘tab’ vibe */
-  box-shadow:0 20px 50px rgba(0,0,0,.45);
-  padding:clamp(20px,3vw,40px);
+  /* Positie & maat worden vanuit JS gezet via CSS-variabelen */
+  left: var(--nlsb-modal-left, clamp(12px, 3vw, 32px));
+  top:  var(--nlsb-modal-top,  clamp(12px, 3vh, 32px));
+  width: min(var(--ru-modal-w, 50vw), calc(100vw - 24px));
 
-  /* animatie in/uit */
-  transform:translateY(-12px) scale(.98);
-  opacity:0; pointer-events:none;
-  transition:transform .28s ease, opacity .28s ease;
+  max-height: 85vh; overflow:auto;
+
+  background: var(--ru-modal-bg, var(--ru-accent, #ffffff));
+  color:      var(--ru-modal-text, #111111);
+
+  border-radius: 20px 0 20px 20px;
+  box-shadow: 0 20px 50px rgba(0,0,0,.45);
+  padding: clamp(20px, 3vw, 40px);
+
+  transform: translateY(-12px) scale(.98);
+  opacity: 0; pointer-events: none;
+  transition: transform .28s ease, opacity .28s ease;
 }
 .rucs-slider.modal-open .rucs-info-modal{
-  opacity:1; pointer-events:auto; transform:translateY(0) scale(1);
+  opacity: 1; pointer-events: auto; transform: translateY(0) scale(1);
 }
 
-/* Sluitknop op de kaart */
 .rucs-info-close{
   position:absolute; top:10px; right:10px;
   width:36px; height:36px; border:0; border-radius:50%;
-  background:rgba(0,0,0,.08); color:#000; font-size:20px; line-height:1;
+  background: rgba(0,0,0,.08); color:#000; font-size:20px;
   display:flex; align-items:center; justify-content:center; cursor:pointer;
 }
-.rucs-info-close:hover{ background:rgba(0,0,0,.16); }
-
-/* Typografie in de kaart */
-.rucs-info-modal h2{
-  margin:0 0 .5em 0;
-  font-size:clamp(28px,3.6vw,42px);
-  font-weight:800; line-height:1.15;
-}
-.rucs-info-modal .rucs-info-body{
-  font-size:clamp(16px,2vw,18px);
-  line-height:1.6;
-}
-.rucs-info-modal .button{
-  background:var(--ru-accent, #ffeb00);
-  border-color:var(--ru-accent, #ffeb00);
-  color:#000;
-}
-
-/* Respecteer reduced motion */
-@media (prefers-reduced-motion: reduce){
-  .rucs-info-modal,
-  .rucs-slider.modal-open::before{ transition:none; transform:none; backdrop-filter:none; }
-}
-
-/* Oud Type-B popup volledig uitschakelen (voor de zekerheid) */
-.rucs-slide.type_b .popup,
-.rucs-slide.type_b .popup-toggle{ display:none !important; }
+.rucs-info-modal h2{ margin:0 0 .5em 0; font-size:clamp(28px,3.6vw,42px); font-weight:800; line-height:1.15; }
+.rucs-info-modal .rucs-info-body{ font-size:clamp(16px,2vw,18px); line-height:1.6; }
 
 
-/* Zorg dat track onder de toggle ligt */
-.rucs-track{
-  position: relative;   /* nieuwe stacking context */
-  z-index: 1;
-}
-
-/* Toggle staat echt boven alles en blijft klikbaar */
-.rucs-info-toggle{
-  z-index: 10000 !important;
-  pointer-events: auto;
-}
-
+/* Tijdens modal-open: geen interactie met slider */
 .rucs-slider.modal-open .rucs-track,
 .rucs-slider.modal-open .nav,
-.rucs-slider.modal-open .rucs-dots { pointer-events: none; }
+.rucs-slider.modal-open .rucs-dots{ pointer-events: none; }
 
-/* Info bar (Type B): top balk i.p.v. ronde knop */
-.rucs-slide.type_b .info-bar{
-  position:absolute; left:0; right:0; top:0;
-  height: var(--ru-info-h, 52px);
-  background: var(--ru-info-bg, var(--ru-accent, #ffeb00));
-  color: var(--ru-text);
-  display:flex; align-items:center; justify-content:flex-end;
-  padding: 0 var(--ru-pad);
-  cursor:pointer;
-  box-shadow: 0 2px 0 rgba(0,0,0,.05) inset;
-  z-index:3;
+/* =========================================================
+   NAVIGATIE & DOTS
+   ========================================================= */
+.rucs-slider .nav{
+  position: absolute; top: 50%; transform: translateY(-50%);
+  background: rgba(0,0,0,.35); color: #fff; border: 0;
+  width: var(--rucs-nav-w); height: 42px; border-radius: 999px; cursor: pointer;
+  display: grid; place-items: center; z-index: 3;
 }
-.rucs-slide.type_b .info-plus{
-  font-size: 22px; line-height: 1; user-select:none;
-  display:inline-flex; align-items:center; justify-content:center;
-  width: 34px; height: 34px; border-radius: 999px;
-  background: rgba(255,255,255,.85);
-}
-.rucs-slide.type_b .info-bar:focus { outline: 2px solid #fff; outline-offset: 2px; }
+.rucs-slider .nav.prev{ left: 10px; }
+.rucs-slider .nav.next{ right: 10px; }
+.rucs-slider .nav:focus{ outline: 2px solid #fff; }
 
-/* We gebruiken niet langer .popup-toggle bij type_b */
-.rucs-slide.type_b .popup{
-  position:absolute;
-  left:var(--ru-pad);
-  bottom:calc(var(--ru-pad) + var(--ru-cap-h, 0px));
-  max-width:min(640px, 92%);
-  background:var(--ru-accent, #ffeb00);
-  color:var(--ru-text);
-  border-radius:12px; box-shadow:0 12px 28px rgba(0,0,0,.22);
-  padding:var(--ru-pad); z-index:3;
-  transform:translateY(12px); opacity:0; pointer-events:none;
-  transition:transform .45s ease, opacity .45s ease;
+.rucs-dots{
+  position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%);
+  display: flex; gap: 6px; z-index: 3;
 }
-.rucs-slide.type_b.popup-open .popup{ transform:translateY(0); opacity:1; pointer-events:auto; }
+.rucs-dots .dot{
+  width: 10px; aspect-ratio: 1/1; box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.9);
+  background: rgba(255,255,255,.35);
+  cursor: pointer;
+}
+.rucs-dots .dot.is-active{ background: #fff; }
+@media (max-width: 780px){
+  .rucs-dots{ bottom: 8px; }
+  .rucs-dots .dot{ width: 8px; }
+}
 
-@media (max-width:780px){
-  .rucs-slide.type_b .info-bar{ height: var(--ru-info-h-mobile, 44px); }
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+@media (prefers-reduced-motion: reduce){
+  .rucs-info-modal,
+  .rucs-slider.modal-open::before,
+  .rucs-slide.type_a .panel-left{
+    transition: none !important;
+    transform: none !important;
+    backdrop-filter: none !important;
+  }
 }
