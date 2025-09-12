@@ -13,7 +13,7 @@ function nlsb_slider_settings_box($post){
   $h  = get_post_meta($post->ID, '_nlsb_height',  true) ?: '65vh';
   $mh = get_post_meta($post->ID, '_nlsb_mheight', true) ?: '60vh';
   
-  // NIEUW: info-balk instellingen
+  // Info-balk instellingen
   $ib_mode  = get_post_meta($post->ID, '_nlsb_infobar_mode',  true) ?: 'accent'; // 'accent' | 'custom'
   $ib_color = get_post_meta($post->ID, '_nlsb_infobar_color', true) ?: '#111111';
   
@@ -222,6 +222,7 @@ function nlsb_slide_fields_box($post){
   $capHU   = get_post_meta($post->ID, '_nlsb_capHeightUnit',  true) ?: 'px';
   $btnTxt  = get_post_meta($post->ID, '_nlsb_btnText', true) ?: '';
   $btnUrl  = get_post_meta($post->ID, '_nlsb_btnUrl',  true) ?: '';
+  $modalTxt= get_post_meta($post->ID, '_nlsb_modalText', true) ?: '#111111'; // << NIEUW
 
   wp_nonce_field('nlsb_save_slide','nlsb_nonce_slide');
   $sliders = get_posts(['post_type'=>'nlsb_slider','numberposts'=>-1,'post_status'=>'any']);
@@ -256,6 +257,10 @@ function nlsb_slide_fields_box($post){
     <tr><th><label>Accentkleur</label></th><td>
       <input type="color" name="nlsb_accent" value="<?php echo esc_attr($accent); ?>">
     </td></tr>
+    <tr><th><label>Modal tekstkleur</label></th><td>
+      <input type="color" name="nlsb_modalText" value="<?php echo esc_attr($modalTxt); ?>">
+      <p class="description">Kleur van de tekst in de info-modal voor deze slide.</p>
+    </td></tr>
     <tr><th><label>Button (optioneel)</label></th><td>
       <input type="text" class="regular-text" name="nlsb_btnText" placeholder="Tekst" value="<?php echo esc_attr($btnTxt); ?>"><br>
       <input type="url"  class="regular-text" name="nlsb_btnUrl"  placeholder="https://…" value="<?php echo esc_attr($btnUrl); ?>">
@@ -286,8 +291,10 @@ add_action('save_post_nlsb_slider', function ($post_id){
   update_post_meta($post_id, '_nlsb_height',  sanitize_text_field($_POST['nlsb_height']  ?? '65vh'));
   update_post_meta($post_id, '_nlsb_mheight', sanitize_text_field($_POST['nlsb_mheight'] ?? '60vh'));
 
-  $mode  = in_array($_POST['nlsb_infobar_mode'] ?? 'accent', ['accent','custom'], true) ? $_POST['nlsb_infobar_mode'] : 'accent';
-  $color = sanitize_hex_color($_POST['nlsb_infobar_color'] ?? '#111111');
+  $modeRaw = $_POST['nlsb_infobar_mode'] ?? 'accent';
+  $mode    = in_array($modeRaw, ['accent','custom'], true) ? $modeRaw : 'accent';
+  $color   = sanitize_hex_color($_POST['nlsb_infobar_color'] ?? '#111111');
+
   update_post_meta($post_id, '_nlsb_infobar_mode',  $mode);
   update_post_meta($post_id, '_nlsb_infobar_color', $color ?: '#111111');
 });
@@ -309,4 +316,122 @@ add_action('save_post_nlsb_slide', function ($post_id){
   update_post_meta($post_id, '_nlsb_accent',          sanitize_hex_color($_POST['nlsb_accent'] ?? '#ffeb00'));
   update_post_meta($post_id, '_nlsb_btnText',         sanitize_text_field($_POST['nlsb_btnText'] ?? ''));
   update_post_meta($post_id, '_nlsb_btnUrl',          esc_url_raw($_POST['nlsb_btnUrl'] ?? ''));
+
+  // NIEUW: Modal tekstkleur opslaan
+  $mt = isset($_POST['nlsb_modalText']) ? sanitize_hex_color($_POST['nlsb_modalText']) : '';
+  if ($mt) update_post_meta($post_id, '_nlsb_modalText', $mt);
+  else delete_post_meta($post_id, '_nlsb_modalText');
 });
+
+/* === Shortcode metabox op nlsb_slider bewerkscherm ======================= */
+add_action('add_meta_boxes', function () {
+  add_meta_box(
+    'nlsb_shortcode_box',
+    __('Shortcode', 'nlsb'),
+    'nlsb_render_shortcode_box',
+    'nlsb_slider',
+    'side',
+    'high'
+  );
+});
+
+function nlsb_render_shortcode_box($post){
+  // Als de slider nog niet is opgeslagen (auto-draft), toon een hint
+  $status = get_post_status($post);
+  if (!$post->ID || $status === 'auto-draft') {
+    echo '<p>'.esc_html__('Sla de slider eerst op om de shortcode te zien.', 'nlsb').'</p>';
+    return;
+  }
+
+  $id   = (int) $post->ID;
+  $slug = $post->post_name; // kan leeg zijn bij concepten
+  $scId = '[nlsb_slider id="'.$id.'"]';
+  $scSl = $slug ? '[nlsb_slider slug="'.esc_attr($slug).'"]' : '';
+
+  // Unieke IDs om conflicts te voorkomen
+  $uid   = 'nlsb_sc_'.uniqid();
+  $idInp = $uid.'_id';
+  $idBtn = $uid.'_id_btn';
+  $slInp = $uid.'_sl';
+  $slBtn = $uid.'_sl_btn';
+  ?>
+  <style>
+    .nlsb-sc-wrap .codefield{font-family:monospace;width:100%;box-sizing:border-box}
+    .nlsb-sc-wrap .row{display:flex;gap:6px;margin-bottom:8px}
+    .nlsb-sc-wrap .row .button{white-space:nowrap}
+    .nlsb-sc-wrap .help{color:#666;margin:8px 0 0}
+  </style>
+
+  <div class="nlsb-sc-wrap">
+    <label for="<?php echo esc_attr($idInp); ?>"><strong><?php esc_html_e('Shortcode (ID)', 'nlsb'); ?></strong></label>
+    <div class="row">
+      <input type="text" readonly class="codefield" id="<?php echo esc_attr($idInp); ?>" value="<?php echo esc_attr($scId); ?>">
+      <button type="button" class="button" id="<?php echo esc_attr($idBtn); ?>"><?php esc_html_e('Kopieer', 'nlsb'); ?></button>
+    </div>
+
+    <label><strong><?php esc_html_e('Shortcode (slug)', 'nlsb'); ?></strong></label>
+    <div class="row">
+      <input type="text" readonly class="codefield" id="<?php echo esc_attr($slInp); ?>" value="<?php echo esc_attr($scSl); ?>" <?php echo $slug ? '' : 'placeholder="[nlsb_slider slug=&quot;voorbeeld&quot;]"'; ?>>
+      <button type="button" class="button" id="<?php echo esc_attr($slBtn); ?>" <?php echo $slug ? '' : 'disabled'; ?>><?php esc_html_e('Kopieer', 'nlsb'); ?></button>
+    </div>
+
+    <p class="help">
+      <?php
+      if ($slug) {
+        printf(
+          /* translators: %s = slug */
+          esc_html__('Slug: %s', 'nlsb'),
+          '<code>'.esc_html($slug).'</code>'
+        );
+      } else {
+        esc_html_e('Tip: publiceer of sla op om een slug te krijgen.', 'nlsb');
+      }
+      ?>
+    </p>
+  </div>
+
+  <script>
+    (function(){
+      function copyVal(inputId, btnId){
+        var inp = document.getElementById(inputId);
+        var btn = document.getElementById(btnId);
+        if (!inp || !btn) return;
+        btn.addEventListener('click', function(e){
+          e.preventDefault();
+          var val = inp.value;
+          if (!val) return;
+          // Probeer moderne clipboard API
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(val).then(function(){
+              feedback(btn);
+            }).catch(function(){
+              legacyCopy(inp, btn);
+            });
+          } else {
+            legacyCopy(inp, btn);
+          }
+        });
+      }
+      function legacyCopy(inp, btn){
+        inp.removeAttribute('readonly');
+        inp.select();
+        inp.setSelectionRange(0, 99999);
+        document.execCommand('copy');
+        inp.setAttribute('readonly', 'readonly');
+        feedback(btn);
+      }
+      function feedback(btn){
+        var old = btn.textContent;
+        btn.textContent = '<?php echo esc_js(__('Gekopieerd!', 'nlsb')); ?>';
+        btn.disabled = true;
+        setTimeout(function(){
+          btn.textContent = old;
+          btn.disabled = false;
+        }, 1200);
+      }
+      copyVal('<?php echo esc_js($idInp); ?>', '<?php echo esc_js($idBtn); ?>');
+      copyVal('<?php echo esc_js($slInp); ?>', '<?php echo esc_js($slBtn); ?>');
+    })();
+  </script>
+  <?php
+}
