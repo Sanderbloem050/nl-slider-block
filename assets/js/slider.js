@@ -58,6 +58,7 @@
     const infoModal = root.querySelector('#rucs-info-modal');
     const infoClose = root.querySelector('.rucs-info-close');
     const infoPills = root.querySelectorAll('.info-pill');
+    const infoSlot  = root.querySelector('.rucs-info-slot');
 
     function isOpen(){ return root.classList.contains('modal-open'); }
     function openInfo(){
@@ -76,17 +77,17 @@
       const pillRect  = pill.getBoundingClientRect();
       const slideCS   = getComputedStyle(slide);
 
-      // 1) Breedte gelijk aan pill (in pixels)
+      // 1) Breedte = pill
       root.style.setProperty('--ru-modal-w', pillRect.width + 'px');
 
-      // 2) Positioneren links gelijk aan slider, top net onder de balk
+      // 2) Positie aan linkerrand slider, net onder topbar
       const barH = parseFloat(slideCS.getPropertyValue('--ru-info-h')) || 52;
       const top  = window.scrollY + rootRect.top + barH + 8;
       const left = window.scrollX + rootRect.left;
-      root.style.setProperty('--nlsb-modal-left', left + 'px');
       root.style.setProperty('--nlsb-modal-top',  top  + 'px');
+      root.style.setProperty('--nlsb-modal-left', left + 'px');
 
-      // 3) Kleuren: bg = info-bg of accent; text per slide (fallback #111)
+      // 3) Kleuren uit slide vars
       const bg   =
         slideCS.getPropertyValue('--ru-info-bg')?.trim() ||
         slideCS.getPropertyValue('--ru-accent')?.trim() ||
@@ -94,9 +95,16 @@
       const text =
         slideCS.getPropertyValue('--ru-modal-text')?.trim() ||
         '#111111';
-
       root.style.setProperty('--ru-modal-bg',   bg);
       root.style.setProperty('--ru-modal-text', text);
+
+      // 4) Inhoud (alleen wanneer slider enkel Type A heeft)
+      if (root.dataset.perSlideModal === '1' && infoSlot) {
+        const tpl = slide.querySelector('.rucs-modal-tpl');
+        if (tpl) {
+          infoSlot.innerHTML = tpl.innerHTML; // content komt uit server-side render
+        }
+      }
     }
 
     // Toggle via pill
@@ -141,7 +149,7 @@
       if (originals[logical]) originals[logical].classList.add('is-active');
 
       setActiveDot(logical);
-      // Wil je altijd modal sluiten bij slide-wissel?
+      // // Wil je altijd modal sluiten bij slide-wissel?
       // if (isOpen()) closeInfo();
     }
 

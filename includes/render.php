@@ -33,13 +33,20 @@ add_shortcode('nlsb_slider', function($atts){
   ]);
   if (!$slides) return '';
 
-  // Shared info (we tonen content van slide 1 in de modal)
+  // Shared info (we tonen content van slide 1 als "globaal" fallback)
   $first_id      = $slides[0]->ID;
   $shared_title  = get_the_title($first_id);
   $shared_body   = apply_filters('the_content', get_post_field('post_content', $first_id));
   $shared_btnTxt = get_post_meta($first_id,'_nlsb_btnText', true) ?: '';
   $shared_btnUrl = get_post_meta($first_id,'_nlsb_btnUrl',  true) ?: '';
   $shared_accent = get_post_meta($first_id,'_nlsb_accent', true) ?: '#ffeb00';
+
+  // Bepaal of ALLE slides type A zijn
+  $only_type_a = true;
+  foreach ($slides as $_s) {
+    $lay = get_post_meta($_s->ID,'_nlsb_layout', true)==='b' ? 'b' : 'a';
+    if ($lay === 'b') { $only_type_a = false; break; }
+  }
 
   wp_enqueue_style('nlsb-slider');
   wp_enqueue_script('nlsb-slider');
@@ -48,27 +55,33 @@ add_shortcode('nlsb_slider', function($atts){
   $wrap_id = 'nlsb-slider-'.uniqid();
 
   ob_start(); ?>
-  <div id="<?php echo esc_attr($wrap_id); ?>" class="rucs-slider"
+  <div id="<?php echo esc_attr($wrap_id); ?>"
+       class="rucs-slider"
+       data-per-slide-modal="<?php echo $only_type_a ? '1' : '0'; ?>"
        style="--rucs-height:<?php echo esc_attr($height); ?>;
               --rucs-height-mobile:<?php echo esc_attr($mheight); ?>;
               --ru-accent: <?php echo esc_attr($shared_accent); ?>;">
 
-    <!-- Globale info-modal (inhoud komt van slide 1) -->
+    <!-- Globale info-modal (inhoud: gedeeld óf per-slide, via JS) -->
     <div id="rucs-info-modal"
          class="rucs-info-modal"
          role="dialog"
          aria-modal="true"
          aria-labelledby="rucs-info-title">
       <button class="rucs-info-close" aria-label="<?php esc_attr_e('Sluiten','nlsb'); ?>">×</button>
-      <?php if ($shared_title): ?>
-        <h2 id="rucs-info-title"><?php echo esc_html($shared_title); ?></h2>
-      <?php endif; ?>
-      <?php if ($shared_body): ?>
-        <div class="rucs-info-body"><?php echo $shared_body; ?></div>
-      <?php endif; ?>
-      <?php if ($shared_btnTxt && $shared_btnUrl): ?>
-        <p><a class="button" href="<?php echo esc_url($shared_btnUrl); ?>"><?php echo esc_html($shared_btnTxt); ?></a></p>
-      <?php endif; ?>
+
+      <!-- SLOT: wordt gevuld door JS (per-slide) of bevat fallback (gedeeld) -->
+      <div class="rucs-info-slot">
+        <?php if ($shared_title): ?>
+          <h2 id="rucs-info-title"><?php echo esc_html($shared_title); ?></h2>
+        <?php endif; ?>
+        <?php if ($shared_body): ?>
+          <div class="rucs-info-body"><?php echo $shared_body; ?></div>
+        <?php endif; ?>
+        <?php if ($shared_btnTxt && $shared_btnUrl): ?>
+          <p><a class="button" href="<?php echo esc_url($shared_btnUrl); ?>"><?php echo esc_html($shared_btnTxt); ?></a></p>
+        <?php endif; ?>
+      </div>
     </div>
 
     <!-- Inline styles (mag later naar assets/css/slider.css verplaatst worden) -->
@@ -174,7 +187,7 @@ add_shortcode('nlsb_slider', function($atts){
                  <?php if ($modalText) echo "--ru-modal-text: ".esc_attr($modalText).";"; ?>
                  <?php if ($capH!=='') echo "--ru-cap-h: ".esc_attr($capH).";"; ?>">
 
-          <!-- TOPBAR: transparante balk + pill (opent globale modal) -->
+          <!-- TOPBAR: transparante balk + pill (opent modal) -->
           <div class="info-bar" style="--ru-info-bg: <?php echo esc_attr($bar_bg); ?>;">
             <button class="info-pill" type="button" aria-label="<?php esc_attr_e('Toon informatie','nlsb'); ?>" aria-controls="rucs-info-modal">
               <span class="info-plus" aria-hidden="true">+</span>
@@ -190,6 +203,20 @@ add_shortcode('nlsb_slider', function($atts){
           <?php else: // type_b ?>
             <div class="caption"><?php echo esc_html($caption ?: $title); ?></div>
           <?php endif; ?>
+
+          <!-- VERBORGEN TEMPLATE voor per-slide modal content -->
+          <template class="rucs-modal-tpl">
+            <?php if ($title): ?>
+              <h2><?php echo esc_html($title); ?></h2>
+            <?php endif; ?>
+            <?php if ($body): ?>
+              <div class="rucs-info-body"><?php echo $body; ?></div>
+            <?php endif; ?>
+            <?php if ($btnTxt && $btnUrl): ?>
+              <p><a class="button" href="<?php echo esc_url($btnUrl); ?>"><?php echo esc_html($btnTxt); ?></a></p>
+            <?php endif; ?>
+          </template>
+
         </section>
       <?php endforeach; ?>
     </div>

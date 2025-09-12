@@ -2,7 +2,7 @@
 /**
  * Plugin Name: NL Slider Block
  * Description: Custom slider met 2 type slides.
- * Version: 1.5.8
+ * Version: 1.5.9
  * Author: NothLabs
  * License: GPL-2.0-or-later
  */

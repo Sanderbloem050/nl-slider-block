@@ -362,29 +362,59 @@ function nlsb_render_shortcode_box($post){
     .nlsb-sc-wrap .help{color:#666;margin:8px 0 0}
   </style>
 
-  <div class="nlsb-sc-wrap">
-    <label for="<?php echo esc_attr($idInp); ?>"><strong><?php esc_html_e('Shortcode (ID)', 'nlsb'); ?></strong></label>
-    <div class="row">
-      <input type="text" readonly class="codefield" id="<?php echo esc_attr($idInp); ?>" value="<?php echo esc_attr($scId); ?>">
-      <button type="button" class="button" id="<?php echo esc_attr($idBtn); ?>"><?php esc_html_e('Kopieer', 'nlsb'); ?></button>
-    </div>
+ /* === Shortcode (alleen slug) metabox op nlsb_slider bewerkscherm ======== */
+add_action('add_meta_boxes', function () {
+  add_meta_box(
+    'nlsb_shortcode_box',
+    __('Shortcode', 'nlsb'),
+    'nlsb_render_shortcode_box',
+    'nlsb_slider',
+    'side',
+    'high'
+  );
+});
 
+function nlsb_render_shortcode_box($post){
+  $status = get_post_status($post);
+  $slug   = $post->post_name; // Wordt gezet na opslaan/publiceren
+
+  $scSlug = $slug ? '[nlsb_slider slug="'.esc_attr($slug).'"]' : '';
+  $uid    = 'nlsb_sc_'.uniqid();
+  $slInp  = $uid.'_sl';
+  $slBtn  = $uid.'_sl_btn';
+  ?>
+  <style>
+    .nlsb-sc-wrap .codefield{font-family:monospace;width:100%;box-sizing:border-box}
+    .nlsb-sc-wrap .row{display:flex;gap:6px;margin-bottom:8px}
+    .nlsb-sc-wrap .row .button{white-space:nowrap}
+    .nlsb-sc-wrap .help{color:#666;margin:8px 0 0}
+  </style>
+
+  <div class="nlsb-sc-wrap">
     <label><strong><?php esc_html_e('Shortcode (slug)', 'nlsb'); ?></strong></label>
     <div class="row">
-      <input type="text" readonly class="codefield" id="<?php echo esc_attr($slInp); ?>" value="<?php echo esc_attr($scSl); ?>" <?php echo $slug ? '' : 'placeholder="[nlsb_slider slug=&quot;voorbeeld&quot;]"'; ?>>
-      <button type="button" class="button" id="<?php echo esc_attr($slBtn); ?>" <?php echo $slug ? '' : 'disabled'; ?>><?php esc_html_e('Kopieer', 'nlsb'); ?></button>
+      <input
+        type="text"
+        readonly
+        class="codefield"
+        id="<?php echo esc_attr($slInp); ?>"
+        value="<?php echo esc_attr($scSlug); ?>"
+        <?php echo $slug ? '' : 'placeholder="[nlsb_slider slug=&quot;voorbeeld&quot;]"'; ?>
+      >
+      <button
+        type="button"
+        class="button"
+        id="<?php echo esc_attr($slBtn); ?>"
+        <?php echo $slug ? '' : 'disabled'; ?>
+      ><?php esc_html_e('Kopieer', 'nlsb'); ?></button>
     </div>
 
     <p class="help">
       <?php
       if ($slug) {
-        printf(
-          /* translators: %s = slug */
-          esc_html__('Slug: %s', 'nlsb'),
-          '<code>'.esc_html($slug).'</code>'
-        );
+        printf( esc_html__('Slug: %s', 'nlsb'), '<code>'.esc_html($slug).'</code>' );
       } else {
-        esc_html_e('Tip: publiceer of sla op om een slug te krijgen.', 'nlsb');
+        esc_html_e('Tip: sla de slider eerst op/publiceer om een slug te krijgen.', 'nlsb');
       }
       ?>
     </p>
@@ -392,45 +422,41 @@ function nlsb_render_shortcode_box($post){
 
   <script>
     (function(){
-      function copyVal(inputId, btnId){
-        var inp = document.getElementById(inputId);
-        var btn = document.getElementById(btnId);
-        if (!inp || !btn) return;
-        btn.addEventListener('click', function(e){
-          e.preventDefault();
-          var val = inp.value;
-          if (!val) return;
-          // Probeer moderne clipboard API
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(val).then(function(){
-              feedback(btn);
-            }).catch(function(){
-              legacyCopy(inp, btn);
-            });
-          } else {
-            legacyCopy(inp, btn);
-          }
-        });
-      }
-      function legacyCopy(inp, btn){
-        inp.removeAttribute('readonly');
-        inp.select();
-        inp.setSelectionRange(0, 99999);
-        document.execCommand('copy');
-        inp.setAttribute('readonly', 'readonly');
-        feedback(btn);
-      }
-      function feedback(btn){
-        var old = btn.textContent;
-        btn.textContent = '<?php echo esc_js(__('Gekopieerd!', 'nlsb')); ?>';
-        btn.disabled = true;
-        setTimeout(function(){
-          btn.textContent = old;
-          btn.disabled = false;
-        }, 1200);
-      }
-      copyVal('<?php echo esc_js($idInp); ?>', '<?php echo esc_js($idBtn); ?>');
-      copyVal('<?php echo esc_js($slInp); ?>', '<?php echo esc_js($slBtn); ?>');
+      var inp = document.getElementById('<?php echo esc_js($slInp); ?>');
+      var btn = document.getElementById('<?php echo esc_js($slBtn); ?>');
+      if (!inp || !btn) return;
+
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        var val = inp.value;
+        if (!val) return;
+
+        function feedback(){
+          var old = btn.textContent;
+          btn.textContent = '<?php echo esc_js(__('Gekopieerd!', 'nlsb')); ?>';
+          btn.disabled = true;
+          setTimeout(function(){
+            btn.textContent = old;
+            btn.disabled = false;
+          }, 1200);
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(val).then(feedback).catch(function(){
+            inp.removeAttribute('readonly');
+            inp.select(); inp.setSelectionRange(0, 99999);
+            document.execCommand('copy');
+            inp.setAttribute('readonly','readonly');
+            feedback();
+          });
+        } else {
+          inp.removeAttribute('readonly');
+          inp.select(); inp.setSelectionRange(0, 99999);
+          document.execCommand('copy');
+          inp.setAttribute('readonly','readonly');
+          feedback();
+        }
+      });
     })();
   </script>
   <?php
