@@ -2,7 +2,7 @@
 /**
  * Plugin Name: NL Slider Block
  * Description: Slider gekoppeld aan CPT Projects.
- * Version: 1.6.0
+ * Version: 1.6.2
  * Author: NothLabs
  * License: GPL-2.0-or-later
  */

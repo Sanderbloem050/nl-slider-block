@@ -68,6 +68,15 @@ add_action('add_meta_boxes', function(){
     'normal',
     'default'
   );
+
+  add_meta_box(
+    'nlsb_project_shortcode',
+    __('Shortcode', 'nlsb'),
+    'nlsb_project_render_shortcode_box',
+    'projects',
+    'side',
+    'high'
+  );
 });
 
 function nlsb_project_render_hero_box($post){
@@ -172,6 +181,72 @@ function nlsb_project_render_slides_box($post){
   <?php
 }
 
+function nlsb_project_render_shortcode_box($post){
+  if (!$post->ID || get_post_status($post) === 'auto-draft') {
+    echo '<p>'.esc_html__('Sla het project eerst op om de shortcode te zien.', 'nlsb').'</p>';
+    return;
+  }
+
+  $slug = $post->post_name;
+  $shortcode = $slug ? '[nlsb_slider slug="'.esc_attr($slug).'"]' : '';
+  $uid = 'nlsb_proj_sc_'.uniqid();
+  $input = $uid.'_inp';
+  $button = $uid.'_btn';
+  ?>
+  <div class="nlsb-sc-wrap">
+    <label><strong><?php esc_html_e('Shortcode', 'nlsb'); ?></strong></label>
+    <input
+      type="text"
+      readonly
+      class="codefield"
+      id="<?php echo esc_attr($input); ?>"
+      value="<?php echo esc_attr($shortcode); ?>"
+      <?php echo $shortcode ? '' : 'placeholder="[nlsb_slider slug=&quot;voorbeeld-project&quot;]"'; ?>
+    >
+    <div class="nlsb-sc-buttons">
+      <button type="button" class="button" id="<?php echo esc_attr($button); ?>" <?php echo $shortcode ? '' : 'disabled'; ?>><?php esc_html_e('Kopieer shortcode', 'nlsb'); ?></button>
+    </div>
+    <p class="description"><?php printf(esc_html__('Slug: %s', 'nlsb'), '<code>'.esc_html($slug ?: __('onbekend', 'nlsb')).'</code>'); ?></p>
+  </div>
+  <style>
+    #nlsb_project_shortcode .nlsb-sc-wrap{display:flex;flex-direction:column;gap:8px}
+    #nlsb_project_shortcode .nlsb-sc-wrap .codefield{font-family:monospace;width:100%;box-sizing:border-box}
+    #nlsb_project_shortcode .nlsb-sc-buttons{display:flex;gap:6px}
+  </style>
+  <script>
+    (function(){
+      var btn = document.getElementById('<?php echo esc_js($button); ?>');
+      var inp = document.getElementById('<?php echo esc_js($input); ?>');
+      if (!btn || !inp || !inp.value) return;
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        var val = inp.value;
+        function feedback(){
+          var old = btn.textContent;
+          btn.textContent = '<?php echo esc_js(__('Gekopieerd!', 'nlsb')); ?>';
+          btn.disabled = true;
+          setTimeout(function(){ btn.textContent = old; btn.disabled = false; }, 1100);
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(val).then(feedback).catch(function(){
+            inp.removeAttribute('readonly');
+            inp.select();
+            document.execCommand('copy');
+            inp.setAttribute('readonly','readonly');
+            feedback();
+          });
+        } else {
+          inp.removeAttribute('readonly');
+          inp.select();
+          document.execCommand('copy');
+          inp.setAttribute('readonly','readonly');
+          feedback();
+        }
+      });
+    })();
+  </script>
+  <?php
+}
 function nlsb_project_slide_item_html($index, $slide){
   $title    = isset($slide['title']) ? (string)$slide['title'] : '';
   $body     = isset($slide['body']) ? (string)$slide['body'] : '';
@@ -265,4 +340,3 @@ add_action('save_post_projects', function ($post_id, $post){
   if ($slides_data) update_post_meta($post_id, NLSB_META_SLIDES, $slides_data);
   else delete_post_meta($post_id, NLSB_META_SLIDES);
 }, 10, 2);
-
