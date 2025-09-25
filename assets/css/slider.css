@@ -29,9 +29,11 @@
 
 
 .nlsb-project-titles {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 18px;
+  width: 100%;
+  justify-content: space-between;
 }
 
 .nlsb-project-name {
@@ -72,7 +74,7 @@
   position: relative;
   overflow: hidden;
   border-radius: 0;
-  height: 100vh;
+  height: 60vh;
   background: transparent;
 }
 
@@ -333,7 +335,7 @@
   display: flex;
   justify-content: flex-start;
   position: absolute;
-  top: 32px;
+  top: 0px;
   left: 0;
   right: 0;
   z-index: 5;
@@ -351,9 +353,11 @@
 }
 
   .nlsb-project-titles {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 18px;
+  width: 100%;
+  justify-content: space-between;
 }
 
   .nlsb-project-pagination {
@@ -398,5 +402,6 @@ body.single-projects:not(.et-tb) #main-content .container,
 body.single-projects:not(.et-tb-has-header) #main-content .container {
   padding-top: 0 !important;
 }
+
 
 
