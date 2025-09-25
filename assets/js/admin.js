@@ -7,7 +7,6 @@ jQuery(function ($) {
     confirmDelete: 'Slide verwijderen?',
     slideLabel: 'Slide',
     noImage: 'Nog geen afbeelding geselecteerd',
-    noLogo: 'Geen logo geselecteerd',
     expand: 'Uitklappen',
     collapse: 'Inklappen',
   }, window.NLSBProject || {});
@@ -19,9 +18,8 @@ jQuery(function ($) {
   const slideTemplate = ($('#nlsb-slide-template').html() || '').trim();
 
   function mediaFallback($wrapper) {
-    const type = $wrapper.data('type');
-    const text = type === 'logo' ? strings.noLogo : strings.noImage;
-    return '<span class="nlsb-media-placeholder">' + text + '</span>';
+    const text = strings.noImage;
+    return "<span class=\"nlsb-media-placeholder\">" + text + "</span>";
   }
 
   function setButtonDefault($btn) {
@@ -183,3 +181,5 @@ jQuery(function ($) {
     });
   }
 });
+
+

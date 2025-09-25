@@ -2,7 +2,7 @@
 /**
  * Plugin Name: NL Slider Block
  * Description: Slider gekoppeld aan CPT Projects.
- * Version: 1.6.2
+ * Version: 1.6.4
  * Author: NothLabs
  * License: GPL-2.0-or-later
  */
@@ -38,8 +38,9 @@ add_action('admin_enqueue_scripts', function () {
     'confirmDelete'  => __('Weet je zeker dat je deze slide wilt verwijderen?', 'nlsb'),
     'slideLabel'     => __('Slide', 'nlsb'),
     'noImage'        => __('Nog geen afbeelding geselecteerd', 'nlsb'),
-    'noLogo'         => __('Geen logo geselecteerd', 'nlsb'),
     'expand'         => __('Uitklappen', 'nlsb'),
     'collapse'       => __('Inklappen', 'nlsb'),
   ]);
 });
+
+

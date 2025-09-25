@@ -13,7 +13,6 @@ function nlsb_project_get_hero($post_id){
   $raw = is_array($raw) ? $raw : [];
   return [
     'image_id' => isset($raw['image_id']) ? intval($raw['image_id']) : 0,
-    'logo_id'  => isset($raw['logo_id']) ? intval($raw['logo_id']) : 0,
   ];
 }
 
@@ -82,7 +81,6 @@ add_action('add_meta_boxes', function(){
 function nlsb_project_render_hero_box($post){
   $hero  = nlsb_project_get_hero($post->ID);
   $modal = nlsb_project_get_modal($post->ID);
-  $logo_url = $hero['logo_id'] ? wp_get_attachment_image_url($hero['logo_id'], 'thumbnail') : '';
   $hero_url = $hero['image_id'] ? wp_get_attachment_image_url($hero['image_id'], 'large') : '';
 
   wp_nonce_field('nlsb_project_save', 'nlsb_project_nonce');
@@ -90,25 +88,7 @@ function nlsb_project_render_hero_box($post){
   <div class="nlsb-meta">
     <div class="nlsb-meta-section">
       <h3><?php esc_html_e('Hoofdslide (Type A)', 'nlsb'); ?></h3>
-      <p class="description"><?php esc_html_e('Kies logo en hoofdafbeelding voor de eerste slide.', 'nlsb'); ?></p>
-
-      <div class="nlsb-field">
-        <label class="nlsb-field-label"><?php esc_html_e('Logo', 'nlsb'); ?></label>
-        <div class="nlsb-media" data-type="logo">
-          <div class="nlsb-media-preview" data-target="logo">
-            <?php if ($logo_url): ?>
-              <img src="<?php echo esc_url($logo_url); ?>" alt="" />
-            <?php else: ?>
-              <span class="nlsb-media-placeholder"><?php esc_html_e('Geen logo geselecteerd', 'nlsb'); ?></span>
-            <?php endif; ?>
-          </div>
-          <div class="nlsb-media-buttons">
-            <input type="hidden" name="nlsb_hero[logo_id]" value="<?php echo esc_attr($hero['logo_id']); ?>" data-field="logo_id">
-            <button type="button" class="button nlsb-media-select" data-field="logo_id"><?php esc_html_e('Kies logo', 'nlsb'); ?></button>
-            <button type="button" class="button-link nlsb-media-remove" data-field="logo_id" <?php echo $logo_url ? '' : 'style="display:none"'; ?>><?php esc_html_e('Verwijder', 'nlsb'); ?></button>
-          </div>
-        </div>
-      </div>
+      <p class="description"><?php esc_html_e('Kies de hoofdafbeelding voor de eerste slide.', 'nlsb'); ?></p>
 
       <div class="nlsb-field">
         <label class="nlsb-field-label"><?php esc_html_e('Hoofdafbeelding', 'nlsb'); ?></label>
@@ -308,9 +288,8 @@ add_action('save_post_projects', function ($post_id, $post){
   $hero = isset($_POST['nlsb_hero']) && is_array($_POST['nlsb_hero']) ? $_POST['nlsb_hero'] : [];
   $hero_data = [
     'image_id' => isset($hero['image_id']) ? intval($hero['image_id']) : 0,
-    'logo_id'  => isset($hero['logo_id']) ? intval($hero['logo_id']) : 0,
   ];
-  if ($hero_data['image_id'] || $hero_data['logo_id']) update_post_meta($post_id, NLSB_META_HERO, $hero_data);
+  if ($hero_data['image_id']) update_post_meta($post_id, NLSB_META_HERO, $hero_data);
   else delete_post_meta($post_id, NLSB_META_HERO);
 
   // Modal
@@ -340,3 +319,6 @@ add_action('save_post_projects', function ($post_id, $post){
   if ($slides_data) update_post_meta($post_id, NLSB_META_SLIDES, $slides_data);
   else delete_post_meta($post_id, NLSB_META_SLIDES);
 }, 10, 2);
+
+
+

@@ -55,8 +55,6 @@ function nlsb_render_project_slider($atts){
   if (!$slides) {
     return '';
   }
-
-  $logo_url = $hero['logo_id'] ? wp_get_attachment_image_url($hero['logo_id'], 'medium') : '';
   $project_title = get_the_title($project_post);
   $modal_title   = $modal['title'] !== '' ? $modal['title'] : $project_title;
   $modal_body    = $modal['body'] !== '' ? apply_filters('the_content', $modal['body']) : '';
@@ -84,11 +82,9 @@ function nlsb_render_project_slider($atts){
   <div id="<?php echo esc_attr($wrap_id); ?>" class="nlsb-project-slider" data-slides="<?php echo esc_attr($slide_count); ?>">
     <div class="nlsb-slider-header">
       <div class="nlsb-header-left">
-        <?php if ($logo_url): ?>
-          <img class="nlsb-logo" src="<?php echo esc_url($logo_url); ?>" alt="<?php echo esc_attr($project_title); ?>">
-        <?php endif; ?>
         <div class="nlsb-project-titles">
           <span class="nlsb-project-name"><?php echo esc_html($project_title); ?></span>
+          <span class="nlsb-header-divider" aria-hidden="true">&ndash;</span>
           <button type="button" class="nlsb-info-trigger" aria-haspopup="dialog" aria-expanded="false">
             <span><?php esc_html_e('Project info', 'nlsb'); ?></span>
             <span class="nlsb-info-icon" aria-hidden="true">i</span>
@@ -190,3 +186,4 @@ function nlsb_render_project_slider($atts){
   <?php
   return ob_get_clean();
 }
+
